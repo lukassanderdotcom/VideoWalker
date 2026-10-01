@@ -12,7 +12,7 @@
   },
   "locations": [
     {
-      "videoUrl": " https://vimeo.com/1163654659",
+      "videoUrl": "https://vimeo.com/1163654659",
       "latitude": 47.3901643,
       "longitude": 8.5109079,
       "radius": 23,
@@ -85,7 +85,7 @@
     "areas": [
       {
         "name": "Audio area 1",
-        "url": "audio/01-STRANGE-NEIGHBOURHOOD.mp3",
+        "url": "01-STRANGE-NEIGHBOURHOOD.mp3",
         "latitude": 47.3878,
         "longitude": 8.5338,
         "radius": 30,
