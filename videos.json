@@ -84,10 +84,10 @@
     "fadeSeconds": 3,
     "areas": [
       {
-        "name": "Audio area 1",
-        "url": "",
-        "latitude": 47.3907338,
-        "longitude": 8.5128206,
+        "name": "Audio area 2",
+        "url": "audio/02-Somebody-Like-Me-feat.-070phi-.m4a",
+        "latitude": 47.3878,
+        "longitude": 8.5338,
         "radius": 30,
         "volume": 1,
         "loop": true
