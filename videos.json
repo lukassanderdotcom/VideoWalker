@@ -100,8 +100,8 @@
       {
         "name": "Audio area 1",
         "url": "audio/01-STRANGE-NEIGHBOURHOOD.mp3",
-        "latitude": 47.3803786,
-        "longitude": 8.5294585,
+        "latitude": 47.3803607,
+        "longitude": 8.5294495,
         "radius": 25,
         "volume": 1,
         "loop": true
@@ -109,8 +109,8 @@
       {
         "name": "Audio area 2",
         "url": "audio/01-STRANGE-NEIGHBOURHOOD.mp3",
-        "latitude": 47.3799808,
-        "longitude": 8.5296495,
+        "latitude": 47.3799751,
+        "longitude": 8.5296763,
         "radius": 25,
         "volume": 1,
         "loop": true
@@ -120,25 +120,25 @@
         "url": "",
         "latitude": 47.3795854,
         "longitude": 8.5310331,
-        "radius": 30,
+        "radius": 35,
         "volume": 1,
         "loop": true
       },
       {
         "name": "Audio area 4",
         "url": "",
-        "latitude": 47.3801382,
-        "longitude": 8.5317416,
-        "radius": 30,
+        "latitude": 47.3800732,
+        "longitude": 8.5317032,
+        "radius": 35,
         "volume": 1,
         "loop": true
       },
       {
         "name": "Audio area 5",
         "url": "",
-        "latitude": 47.3791344,
-        "longitude": 8.5328445,
-        "radius": 25,
+        "latitude": 47.3792315,
+        "longitude": 8.5328328,
+        "radius": 35,
         "volume": 1,
         "loop": true
       }
