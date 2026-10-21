@@ -12,7 +12,7 @@
   },
   "locations": [
     {
-      "videoUrl": "https://vimeo.com/1163654659",
+      "videoUrl": " https://vimeo.com/1163654659",
       "latitude": 47.3901643,
       "longitude": 8.5109079,
       "radius": 23,
@@ -69,7 +69,7 @@
     }
   ],
   "overlay": {
-    "image": "europaallee.png",
+    "image": "pirate_map.png",
     "topLeft": {
       "latitude": 47.3828028,
       "longitude": 8.525856
@@ -85,10 +85,10 @@
     "areas": [
       {
         "name": "Audio area 1",
-        "url": "audio/01-STRANGE-NEIGHBOURHOOD.mp3",
-        "latitude": 47.3903222,
-        "longitude": 8.5123802,
-        "radius": 50,
+        "url": "",
+        "latitude": 47.3907338,
+        "longitude": 8.5128206,
+        "radius": 30,
         "volume": 1,
         "loop": true
       }

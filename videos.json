@@ -1,0 +1,97 @@
+{
+  "version": "1.2.9",
+  "showDebugToggle": true,
+  "impressum": {
+    "en": "<p><strong>VideoWalker</strong></p><p>An interactive location-based video experience.</p><p>For more information, visit our website.</p>",
+    "de": "<p><strong>VideoWalker</strong></p><p>Ein interaktives standortbasiertes Video-Erlebnis.</p><p>Weitere Informationen finden Sie auf unserer Website.</p>"
+  },
+  "defaultPosition": {
+    "latitude": 47.3796683,
+    "longitude": 8.5300801,
+    "zoom": 17
+  },
+  "locations": [
+    {
+      "videoUrl": "https://vimeo.com/1163654659",
+      "latitude": 47.3901643,
+      "longitude": 8.5109079,
+      "radius": 23,
+      "title": {
+        "en": "Location 1",
+        "de": "Standort 1"
+      },
+      "description": {
+        "en": "First video location - 20m radius",
+        "de": "Erster Video-Standort - 20m Radius"
+      }
+    },
+    {
+      "videoUrl": "https://vimeo.com/1163654986",
+      "latitude": 47.3920324,
+      "longitude": 8.5118911,
+      "radius": 20,
+      "title": {
+        "en": "Location 2",
+        "de": "Standort 2"
+      },
+      "description": {
+        "en": "Second video location - 20m radius",
+        "de": "Zweiter Video-Standort - 20m Radius"
+      }
+    },
+    {
+      "videoUrl": "https://vimeo.com/1163655114",
+      "latitude": 47.391649,
+      "longitude": 8.513339,
+      "radius": 10,
+      "title": {
+        "en": "Location 3",
+        "de": "Standort 3"
+      },
+      "description": {
+        "en": "Third video location - 10m radius",
+        "de": "Dritter Video-Standort - 10m Radius"
+      }
+    },
+    {
+      "videoUrl": "https://vimeo.com/1163655235",
+      "latitude": 47.390331,
+      "longitude": 8.512387,
+      "radius": 20,
+      "title": {
+        "en": "Location 4",
+        "de": "Standort 4"
+      },
+      "description": {
+        "en": "Fourth video location - 20m radius",
+        "de": "Vierter Video-Standort - 20m Radius"
+      }
+    }
+  ],
+  "overlay": {
+    "image": "europaallee.png",
+    "topLeft": {
+      "latitude": 47.3828028,
+      "longitude": 8.525856
+    },
+    "bottomRight": {
+      "latitude": 47.3771241,
+      "longitude": 8.5341774
+    },
+    "opacity": 1
+  },
+  "audio": {
+    "fadeSeconds": 3,
+    "areas": [
+      {
+        "name": "Audio area 1",
+        "url": "audio/01-STRANGE-NEIGHBOURHOOD.mp3",
+        "latitude": 47.3903222,
+        "longitude": 8.5123802,
+        "radius": 50,
+        "volume": 1,
+        "loop": true
+      }
+    ]
+  }
+}
