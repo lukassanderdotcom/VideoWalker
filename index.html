@@ -426,6 +426,7 @@
       var videoToLoad = null;
       var isPlayerReady = false;
       var isVideoPlaying = false;
+      var videoPlaybackStarted = false;
       var vimeoPlayer = null;
       var currentVideoType = null; // 'youtube' or 'vimeo'
 
@@ -1259,13 +1260,12 @@
         if (!audioContext) {
           return;
         }
-        const videoOpen = !videoPage.classList.contains('hidden'); // Audio stays silent while a video is open
         audioAreas.forEach((area, index) => {
           const distance = lastPosition === null ? Infinity :
             map.distance([lastPosition.latitude, lastPosition.longitude], [area.latitude, area.longitude]);
           const debugPlayback = debugAudioAreas.has(index);
           const nearby = debugPlayback || distance <= area.radius;
-          const inside = !videoOpen && audioFile(area) !== '' && nearby;
+          const inside = !videoPlaybackStarted && audioFile(area) !== '' && nearby;
           const player = audioPlayers.find(p => p.areaIndex === index);
           if (inside && !player) {
             startAudio(index);
@@ -1483,6 +1483,7 @@
 
       // Step 9: Play video (handles delayed video loading)
       function playVideo(videoUrl) {
+        videoPlaybackStarted = false;
         const videoType = detectVideoType(videoUrl);
         currentVideoType = videoType;
 
@@ -1560,6 +1561,7 @@
         });
         
         vimeoPlayer.on('play', function() {
+          videoPlaybackStarted = true;
           fadeOutAllAudio();
           isVideoPlaying = true;
           console.log('Vimeo video started playing - location updates paused');
@@ -1586,6 +1588,7 @@
 
       // Stop video playback
       function stopVideo() {
+        videoPlaybackStarted = false;
         if (currentVideoType === 'youtube') {
           if (player && typeof player.stopVideo === 'function') {
             player.stopVideo();
@@ -1680,6 +1683,7 @@
       // call back function when youtube player status changed
       function onPlayerStateChange(event) {
         if (event.data == YT.PlayerState.PLAYING && !done) {
+          videoPlaybackStarted = true;
           fadeOutAllAudio();
           isVideoPlaying = true;
           console.log('Video started playing - location updates paused');
