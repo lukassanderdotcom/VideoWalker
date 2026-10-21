@@ -430,6 +430,8 @@ MIT License - feel free to use this project for personal or commercial purposes.
 
 ## Credits
 
+Concept and design by [Lukas Sander](https://www.lukassander.com/) and [maybites](https://maybites.com)
+
 Created for location-based storytelling and interactive experiences.
 
 Map data © [OpenStreetMap](https://www.openstreetmap.org/) contributors  

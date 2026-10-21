@@ -742,6 +742,7 @@
             audioAreaLayer.addTo(map);
           } else {
             audioAreaLayer.remove();
+            stopDebugAudio();
           }
         }
         // Update popup content to show/hide play buttons based on new debug mode state
@@ -998,7 +999,7 @@
           }
           
           checkProximity(latitude, longitude);
-          updateAudio(latitude, longitude);
+          updateAudio();
         }
 
         // callback function on error by geolocation.watchPosition
@@ -1116,6 +1117,8 @@
       let audioContext = null;
       const audioPlayers = []; // { element, gain, areaIndex, direction, stopTimer, error }
       const audioPositions = new Map(); // Area index -> playback position, to continue where it stopped
+      const debugAudioAreas = new Set(); // Area indexes started by the play button in debug mode
+      const audioCircles = []; // Circles of the audio areas, to update the play buttons
 
       // Areas without a file are still drawn in debug mode, they just stay silent
       function isValidAudioArea(area) {
@@ -1136,18 +1139,47 @@
         map.getPane('audioAreas').style.zIndex = 390; // Below the video circles, so those stay tappable
         audioAreaLayer = L.layerGroup();
         audioAreas.forEach((area, index) => {
-          L.circle([area.latitude, area.longitude], {
+          audioCircles[index] = L.circle([area.latitude, area.longitude], {
             pane: 'audioAreas',
             color: '#1565c0',
             dashArray: '6 6',
             fillOpacity: 0.1,
             radius: area.radius
-          }).bindPopup(`<strong>${area.name || 'Audio area ' + (index + 1)}</strong><br>${audioFile(area) || 'No audio file'}`).addTo(audioAreaLayer);
+          }).bindPopup(audioPopupContent(index)).addTo(audioAreaLayer);
         });
         if (debugMode) {
           audioAreaLayer.addTo(map);
         }
         updateDebugAudio();
+      }
+
+      function audioPopupContent(index) {
+        const area = audioAreas[index];
+        let content = `<strong>${area.name || 'Audio area ' + (index + 1)}</strong><br>${audioFile(area) || 'No audio file'}`;
+        if (audioFile(area)) {
+          const label = debugAudioAreas.has(index) ? '■ Stop audio' : '▶ Play audio';
+          content += `<br><button class="popup-play-button" onclick="toggleDebugAudio(${index})">${label}</button>`;
+        }
+        return content;
+      }
+
+      // Debug mode: play an audio area wherever the visitor is (global function for onclick)
+      window.toggleDebugAudio = function(index) {
+        unlockAudio(); // The button tap counts as the user gesture iOS needs
+        if (debugAudioAreas.has(index)) {
+          debugAudioAreas.delete(index);
+        } else {
+          debugAudioAreas.add(index);
+        }
+        audioCircles[index].setPopupContent(audioPopupContent(index));
+        updateAudio();
+      };
+
+      // Leaving debug mode stops the audio areas started by the play button
+      function stopDebugAudio() {
+        debugAudioAreas.clear();
+        audioCircles.forEach((circle, index) => circle.setPopupContent(audioPopupContent(index)));
+        updateAudio();
       }
 
       // Must run during a tap: iOS only lets audio start later if the audio context and
@@ -1226,15 +1258,16 @@
           });
       }
 
-      // Step 8: Fade the audio areas in and out for the current position
-      function updateAudio(latitude, longitude) {
+      // Step 8: Fade the audio areas in and out for the last known position
+      function updateAudio() {
         if (!audioContext) {
           return;
         }
         const videoOpen = !videoPage.classList.contains('hidden'); // Audio stays silent while a video is open
         audioAreas.forEach((area, index) => {
-          const inside = !videoOpen && audioFile(area) !== '' &&
-            map.distance([latitude, longitude], [area.latitude, area.longitude]) <= area.radius;
+          const nearby = debugAudioAreas.has(index) || (lastPosition !== null &&
+            map.distance([lastPosition.latitude, lastPosition.longitude], [area.latitude, area.longitude]) <= area.radius);
+          const inside = !videoOpen && audioFile(area) !== '' && nearby;
           const player = audioPlayers.find(p => p.areaIndex === index);
           if (inside && !player) {
             startAudio(index);
@@ -1305,9 +1338,7 @@
 
       // The video page closed: fade the audio of the current position back in
       function resumeAudioAfterVideo() {
-        if (lastPosition) {
-          updateAudio(lastPosition.latitude, lastPosition.longitude);
-        }
+        updateAudio();
       }
 
       function updateDebugAudio() {
