@@ -69,7 +69,7 @@
     }
   ],
   "overlay": {
-    "image": "pirate_map.png",
+    "image": "europaallee.png",
     "topLeft": {
       "latitude": 47.3828028,
       "longitude": 8.525856
