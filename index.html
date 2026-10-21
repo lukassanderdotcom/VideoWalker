@@ -1384,7 +1384,7 @@
           const area = audioAreas[player.areaIndex];
           const file = audioFile(area).split('/').pop();
           const state = player.error ? 'error: ' + player.error
-            : player.direction === 'in' ? Math.round(audioCenterVolume(area) * 100) + '%' : 'fading out';
+            : player.direction === 'in' ? Math.round(audioTargetVolume(area, player.areaIndex) * 100) + '%' : 'fading out';
           return `${area.name || 'Audio area ' + (player.areaIndex + 1)} – ${file} (${state})`;
         });
         document.getElementById('debugAudio').textContent = 'Audio: ' + (playing.length ? playing.join(', ') : '--');
