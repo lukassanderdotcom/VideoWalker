@@ -146,6 +146,16 @@
         "volume": 1,
         "loop": true,
         "edgeVolume": 0.2
+      },
+      {
+        "name": "Test Zone",
+        "url": "audio/01-STRANGE-NEIGHBOURHOOD.mp3",
+        "latitude": 47.387694,
+        "longitude": 8.5338315,
+        "radius": 35,
+        "centerVolume": 1,
+        "edgeVolume": 0,
+        "loop": true
       }
     ]
   }
