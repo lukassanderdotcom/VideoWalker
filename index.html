@@ -1330,8 +1330,7 @@
         if (direction === 'in') {
           setAudioGain(player, audioTargetVolume(area, player.areaIndex), seconds);
         } else {
-          gain.cancelScheduledValues(now);
-          gain.setValueAtTime(gain.value, now);
+          holdAudioGain(gain, now);
           gain.linearRampToValueAtTime(0, now + seconds);
         }
         player.direction = direction;
@@ -1356,9 +1355,17 @@
         const gain = player.gain.gain;
         const now = audioContext.currentTime;
         player.targetVolume = volume;
-        gain.cancelScheduledValues(now);
-        gain.setValueAtTime(gain.value, now);
+        holdAudioGain(gain, now);
         gain.linearRampToValueAtTime(volume, now + seconds);
+      }
+
+      function holdAudioGain(gain, time) {
+        if (typeof gain.cancelAndHoldAtTime === 'function') {
+          gain.cancelAndHoldAtTime(time);
+        } else {
+          gain.cancelScheduledValues(time);
+          gain.setValueAtTime(gain.value, time);
+        }
       }
 
       // A video starts: fade out everything that is playing
