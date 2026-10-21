@@ -21,8 +21,8 @@
         "de": "Standort 1"
       },
       "description": {
-        "de": "click to play",
-        "en": "click to play"
+        "de": "klicken zum Abspielen sobald vor Ort",
+        "en": "click to play when on location"
       }
     },
     {
@@ -35,8 +35,8 @@
         "de": "Standort 2"
       },
       "description": {
-        "en": "click to play",
-        "de": "click to play"
+        "en": "click to play when on location",
+        "de": "klicken zum Abspielen sobald vor Ort"
       }
     },
     {
@@ -49,8 +49,8 @@
         "de": "Standort 3"
       },
       "description": {
-        "en": "click to play",
-        "de": "click to play"
+        "en": "click to play when on location",
+        "de": "klicken zum Abspielen sobald vor Ort"
       }
     },
     {
@@ -63,8 +63,8 @@
         "de": "Standort 4"
       },
       "description": {
-        "en": "click to play",
-        "de": "click to play"
+        "en": "click to play when on location",
+        "de": "klicken zum Abspielen sobald vor Ort"
       }
     },
     {
@@ -77,8 +77,8 @@
         "de": "Standort 5"
       },
       "description": {
-        "en": "click to play",
-        "de": "click to play"
+        "en": "click to play when on location",
+        "de": "klicken zum Abspielen sobald vor Ort"
       }
     }
   ],
