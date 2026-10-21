@@ -1577,13 +1577,6 @@
           alert('Failed to load the Vimeo video. Please try again later.');
         });
 
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-        if (!isIOS) {
-          vimeoPlayer.play().catch(function(error) {
-            console.error('Vimeo playback failed:', error);
-          });
-        }
       }
 
       // Stop video playback
