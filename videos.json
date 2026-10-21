@@ -27,8 +27,8 @@
     },
     {
       "videoUrl": "https://vimeo.com/1163654986",
-      "latitude": 47.3799469,
-      "longitude": 8.5296023,
+      "latitude": 47.3799476,
+      "longitude": 8.5296005,
       "radius": 10,
       "title": {
         "en": "Location 2",
@@ -97,8 +97,8 @@
       {
         "name": "Audio area 1",
         "url": "audio/01-STRANGE-NEIGHBOURHOOD.mp3",
-        "latitude": 47.3903684,
-        "longitude": 8.5123748,
+        "latitude": 47.3803786,
+        "longitude": 8.5294585,
         "radius": 25,
         "volume": 1,
         "loop": true
@@ -106,8 +106,35 @@
       {
         "name": "Audio area 2",
         "url": "audio/01-STRANGE-NEIGHBOURHOOD.mp3",
-        "latitude": 47.379955,
-        "longitude": 8.5295973,
+        "latitude": 47.3799808,
+        "longitude": 8.5296495,
+        "radius": 25,
+        "volume": 1,
+        "loop": true
+      },
+      {
+        "name": "Audio area 3",
+        "url": "",
+        "latitude": 47.3795854,
+        "longitude": 8.5310331,
+        "radius": 30,
+        "volume": 1,
+        "loop": true
+      },
+      {
+        "name": "Audio area 4",
+        "url": "",
+        "latitude": 47.3801382,
+        "longitude": 8.5317416,
+        "radius": 30,
+        "volume": 1,
+        "loop": true
+      },
+      {
+        "name": "Audio area 5",
+        "url": "",
+        "latitude": 47.3791344,
+        "longitude": 8.5328445,
         "radius": 25,
         "volume": 1,
         "loop": true
