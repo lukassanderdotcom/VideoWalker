@@ -1500,7 +1500,7 @@
       }
       
       function playVimeoVideo(videoUrl) {
-        const videoId = extractVimeoId(videoUrl);
+        const video = extractVimeoVideo(videoUrl);
         
         // Hide YouTube player, show Vimeo player
         document.getElementById('player').style.display = 'none';
@@ -1513,7 +1513,8 @@
         
         // Create new Vimeo player - let it handle responsive sizing
         vimeoPlayer = new Vimeo.Player('vimeoPlayer', {
-          id: videoId,
+          id: video.id,
+          ...(video.hash ? { h: video.hash } : {}),
           autoplay: true,
           byline: false,      // Hide author name
           portrait: false,    // Hide author profile image
@@ -1591,10 +1592,18 @@
         return videoIdMatch ? videoIdMatch[1] : null;
       }
       
-      // Extract Vimeo video ID from various URL formats
-      function extractVimeoId(url) {
-        const videoIdMatch = url.match(/(?:https?:\/\/)?(?:www\.)?vimeo\.com\/(\d+)/);
-        return videoIdMatch ? videoIdMatch[1] : null;
+      // Extract Vimeo ID and unlisted-video hash from share URLs
+      function extractVimeoVideo(url) {
+        const parsedUrl = new URL(url);
+        const pathParts = parsedUrl.pathname.split('/').filter(Boolean);
+        const videoIndex = pathParts.findIndex(part => /^\d+$/.test(part));
+        if (videoIndex === -1) {
+          return null;
+        }
+        return {
+          id: pathParts[videoIndex],
+          hash: pathParts[videoIndex + 1] || parsedUrl.searchParams.get('h')
+        };
       }
 
       // YouTube IFrame API Ready callback (must be global)
