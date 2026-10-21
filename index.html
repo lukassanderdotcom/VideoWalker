@@ -1515,7 +1515,7 @@
         vimeoPlayer = new Vimeo.Player('vimeoPlayer', {
           id: video.id,
           ...(video.hash ? { h: video.hash } : {}),
-          autoplay: true,
+          muted: false,
           byline: false,      // Hide author name
           portrait: false,    // Hide author profile image
           title: false        // Hide video title
@@ -1535,6 +1535,14 @@
           console.error('Vimeo player error:', error);
           alert('Failed to load the Vimeo video. Please try again later.');
         });
+
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        if (!isIOS) {
+          vimeoPlayer.play().catch(function(error) {
+            console.error('Vimeo playback failed:', error);
+          });
+        }
       }
 
       // Stop video playback
