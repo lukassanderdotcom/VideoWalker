@@ -1261,19 +1261,36 @@
         }
         const videoOpen = !videoPage.classList.contains('hidden'); // Audio stays silent while a video is open
         audioAreas.forEach((area, index) => {
-          const nearby = debugAudioAreas.has(index) || (lastPosition !== null &&
-            map.distance([lastPosition.latitude, lastPosition.longitude], [area.latitude, area.longitude]) <= area.radius);
+          const distance = lastPosition === null ? Infinity :
+            map.distance([lastPosition.latitude, lastPosition.longitude], [area.latitude, area.longitude]);
+          const debugPlayback = debugAudioAreas.has(index);
+          const nearby = debugPlayback || distance <= area.radius;
           const inside = !videoOpen && audioFile(area) !== '' && nearby;
           const player = audioPlayers.find(p => p.areaIndex === index);
           if (inside && !player) {
             startAudio(index);
           } else if (inside && player.direction === 'out') {
             fadeAudio(player, 'in'); // Back inside while it was still fading out
+          } else if (inside) {
+            setAudioGain(player, audioTargetVolume(area, index), 0.5);
           } else if (!inside && player && player.direction === 'in') {
             fadeAudio(player, 'out');
           }
         });
         updateDebugAudio();
+      }
+
+      function audioTargetVolume(area, index) {
+        const maxVolume = area.volume ?? 1;
+        if (debugAudioAreas.has(index)) {
+          return maxVolume;
+        }
+        if (lastPosition === null || area.radius <= 0) {
+          return 0;
+        }
+        const distance = map.distance([lastPosition.latitude, lastPosition.longitude], [area.latitude, area.longitude]);
+        const intensity = Math.max(0, Math.min(1, 1 - distance / area.radius));
+        return maxVolume * intensity;
       }
 
       function startAudio(index) {
@@ -1301,9 +1318,13 @@
         const seconds = configData?.audio?.fadeSeconds ?? 3;
         const gain = player.gain.gain;
         const now = audioContext.currentTime;
-        gain.cancelScheduledValues(now);
-        gain.setValueAtTime(gain.value, now);
-        gain.linearRampToValueAtTime(direction === 'in' ? (area.volume ?? 1) : 0, now + seconds);
+        if (direction === 'in') {
+          setAudioGain(player, audioTargetVolume(area, player.areaIndex), seconds);
+        } else {
+          gain.cancelScheduledValues(now);
+          gain.setValueAtTime(gain.value, now);
+          gain.linearRampToValueAtTime(0, now + seconds);
+        }
         player.direction = direction;
         clearTimeout(player.stopTimer);
 
@@ -1320,6 +1341,14 @@
             updateDebugAudio();
           }, seconds * 1000);
         }
+      }
+
+      function setAudioGain(player, volume, seconds) {
+        const gain = player.gain.gain;
+        const now = audioContext.currentTime;
+        gain.cancelScheduledValues(now);
+        gain.setValueAtTime(gain.value, now);
+        gain.linearRampToValueAtTime(volume, now + seconds);
       }
 
       // A video starts: fade out everything that is playing
