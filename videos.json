@@ -13,36 +13,36 @@
   "locations": [
     {
       "videoUrl": "https://vimeo.com/1163654659",
-      "latitude": 47.3901643,
-      "longitude": 8.5109079,
-      "radius": 23,
+      "latitude": 47.3803506,
+      "longitude": 8.5294791,
+      "radius": 10,
       "title": {
         "en": "Location 1",
         "de": "Standort 1"
       },
       "description": {
-        "en": "First video location - 20m radius",
-        "de": "Erster Video-Standort - 20m Radius"
+        "en": "video location 1",
+        "de": "video location 1"
       }
     },
     {
       "videoUrl": "https://vimeo.com/1163654986",
-      "latitude": 47.3920324,
-      "longitude": 8.5118911,
-      "radius": 20,
+      "latitude": 47.3799469,
+      "longitude": 8.5296023,
+      "radius": 10,
       "title": {
         "en": "Location 2",
         "de": "Standort 2"
       },
       "description": {
-        "en": "Second video location - 20m radius",
+        "en": "video location 2",
         "de": "Zweiter Video-Standort - 20m Radius"
       }
     },
     {
       "videoUrl": "https://vimeo.com/1163655114",
-      "latitude": 47.391649,
-      "longitude": 8.513339,
+      "latitude": 47.3795915,
+      "longitude": 8.5310331,
       "radius": 10,
       "title": {
         "en": "Location 3",
@@ -55,9 +55,9 @@
     },
     {
       "videoUrl": "https://vimeo.com/1163655235",
-      "latitude": 47.390331,
-      "longitude": 8.512387,
-      "radius": 20,
+      "latitude": 47.380187,
+      "longitude": 8.5317659,
+      "radius": 10,
       "title": {
         "en": "Location 4",
         "de": "Standort 4"
@@ -66,6 +66,17 @@
         "en": "Fourth video location - 20m radius",
         "de": "Vierter Video-Standort - 20m Radius"
       }
+    },
+    {
+      "videoUrl": "https://vimeo.com/1163655235",
+      "latitude": 47.3791549,
+      "longitude": 8.5328431,
+      "radius": 10,
+      "title": {
+        "en": "Location 5",
+        "de": "Standort 5"
+      },
+      "description": {}
     }
   ],
   "overlay": {
@@ -86,9 +97,18 @@
       {
         "name": "Audio area 1",
         "url": "audio/01-STRANGE-NEIGHBOURHOOD.mp3",
-        "latitude": 47.3903222,
-        "longitude": 8.5123802,
-        "radius": 50,
+        "latitude": 47.3803536,
+        "longitude": 8.529504,
+        "radius": 25,
+        "volume": 1,
+        "loop": true
+      },
+      {
+        "name": "Audio area 2",
+        "url": "audio/01-STRANGE-NEIGHBOURHOOD.mp3",
+        "latitude": 47.379955,
+        "longitude": 8.5295973,
+        "radius": 25,
         "volume": 1,
         "loop": true
       }
