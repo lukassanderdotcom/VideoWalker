@@ -1281,16 +1281,25 @@
       }
 
       function audioTargetVolume(area, index) {
-        const maxVolume = area.volume ?? 1;
+        const centerVolume = audioCenterVolume(area);
         if (debugAudioAreas.has(index)) {
-          return maxVolume;
+          return centerVolume;
         }
         if (lastPosition === null || area.radius <= 0) {
           return 0;
         }
         const distance = map.distance([lastPosition.latitude, lastPosition.longitude], [area.latitude, area.longitude]);
         const intensity = Math.max(0, Math.min(1, 1 - distance / area.radius));
-        return maxVolume * intensity;
+        const edgeVolume = audioEdgeVolume(area);
+        return edgeVolume + (centerVolume - edgeVolume) * intensity;
+      }
+
+      function audioCenterVolume(area) {
+        return Math.max(0, Math.min(1, area.centerVolume ?? area.volume ?? 1));
+      }
+
+      function audioEdgeVolume(area) {
+        return Math.max(0, Math.min(1, area.edgeVolume ?? 0));
       }
 
       function startAudio(index) {
@@ -1375,7 +1384,7 @@
           const area = audioAreas[player.areaIndex];
           const file = audioFile(area).split('/').pop();
           const state = player.error ? 'error: ' + player.error
-            : player.direction === 'in' ? Math.round((area.volume ?? 1) * 100) + '%' : 'fading out';
+            : player.direction === 'in' ? Math.round(audioCenterVolume(area) * 100) + '%' : 'fading out';
           return `${area.name || 'Audio area ' + (player.areaIndex + 1)} – ${file} (${state})`;
         });
         document.getElementById('debugAudio').textContent = 'Audio: ' + (playing.length ? playing.join(', ') : '--');
