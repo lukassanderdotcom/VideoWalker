@@ -100,17 +100,17 @@
       {
         "name": "Audio area 1",
         "url": "audio/01-STRANGE-NEIGHBOURHOOD.mp3",
-        "latitude": 47.3803607,
-        "longitude": 8.5294495,
-        "radius": 25,
+        "latitude": 47.3803872,
+        "longitude": 8.5293117,
+        "radius": 35,
         "volume": 1,
         "loop": true
       },
       {
         "name": "Audio area 2",
         "url": "audio/01-STRANGE-NEIGHBOURHOOD.mp3",
-        "latitude": 47.3799751,
-        "longitude": 8.5296763,
+        "latitude": 47.3799718,
+        "longitude": 8.5296798,
         "radius": 25,
         "volume": 1,
         "loop": true
