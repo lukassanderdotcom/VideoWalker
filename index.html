@@ -1206,7 +1206,7 @@
           const gain = audioContext.createGain();
           gain.gain.value = 0;
           audioContext.createMediaElementSource(element).connect(gain).connect(audioContext.destination);
-          const player = { element, gain, areaIndex: null, direction: null, stopTimer: null, error: null };
+          const player = { element, gain, areaIndex: null, direction: null, targetVolume: 0, stopTimer: null, error: null };
           element.addEventListener('error', () => {
             if (player.areaIndex !== null) {
               player.error = 'cannot load the file';
@@ -1355,6 +1355,7 @@
       function setAudioGain(player, volume, seconds) {
         const gain = player.gain.gain;
         const now = audioContext.currentTime;
+        player.targetVolume = volume;
         gain.cancelScheduledValues(now);
         gain.setValueAtTime(gain.value, now);
         gain.linearRampToValueAtTime(volume, now + seconds);
@@ -1384,7 +1385,7 @@
           const area = audioAreas[player.areaIndex];
           const file = audioFile(area).split('/').pop();
           const state = player.error ? 'error: ' + player.error
-            : player.direction === 'in' ? Math.round(audioTargetVolume(area, player.areaIndex) * 100) + '%' : 'fading out';
+            : player.direction === 'in' ? Math.round(player.targetVolume * 100) + '%' : 'fading out';
           return `${area.name || 'Audio area ' + (player.areaIndex + 1)} – ${file} (${state})`;
         });
         document.getElementById('debugAudio').textContent = 'Audio: ' + (playing.length ? playing.join(', ') : '--');
