@@ -438,20 +438,21 @@
       /**    LOAD AND SAVE      **/
       /**                       **/
 
-      // Start from the videos.json next to this page (the published one on GitHub Pages)
-      function loadPublishedConfig() {
-        fetch('videos.json', { cache: 'no-store' })
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('Failed to load videos.json');
+      // Start from the videos.json next to this page (the published one on GitHub Pages),
+      // or from the repo's videos.example.json while the site has no videos.json yet
+      async function loadPublishedConfig() {
+        for (const name of ['videos.json', 'videos.example.json']) {
+          try {
+            const response = await fetch(name, { cache: 'no-store' });
+            if (response.ok) {
+              setConfig(await response.json(), `the published ${name}`);
+              return;
             }
-            return response.json();
-          })
-          .then(data => setConfig(data, 'the published videos.json'))
-          .catch(error => {
-            console.log('videos.json not loaded:', error);
-            setConfig({ locations: [] }, 'a new, empty videos.json');
-          });
+          } catch (error) {
+            console.log(`${name} not loaded:`, error);
+          }
+        }
+        setConfig({ locations: [] }, 'a new, empty videos.json');
       }
 
       openFolderButton.addEventListener('click', async () => {
@@ -465,13 +466,20 @@
           return; // Picker was cancelled
         }
         try {
-          const handle = await picked.getFileHandle('videos.json').catch(() => null);
+          // A fresh clone has only the example; saving then creates the site's own videos.json
+          let name = 'videos.json';
+          let handle = await picked.getFileHandle(name).catch(() => null);
           if (!handle) {
-            throw new Error(`“${picked.name}” has no videos.json. Pick the VideoWalk project folder.`);
+            name = 'videos.example.json';
+            handle = await picked.getFileHandle(name).catch(() => null);
+          }
+          if (!handle) {
+            throw new Error(`“${picked.name}” has no videos.json or videos.example.json. Pick the VideoWalk project folder.`);
           }
           const data = JSON.parse(await (await handle.getFile()).text());
           folder = picked;
-          setConfig(data, `videos.json in “${folder.name}”`);
+          setConfig(data, name === 'videos.json' ? `videos.json in “${folder.name}”`
+            : `videos.example.json in “${folder.name}” (saving creates videos.json)`);
         } catch (error) {
           showStatus(error.message, true);
         }

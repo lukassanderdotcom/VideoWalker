@@ -837,9 +837,23 @@
         consentPage.classList.remove('hidden');
       });
 
+      // The site's own videos.json, or the example from the repo while there is none.
+      // Forks commit their videos.json, the repo only changes videos.example.json,
+      // so pulling updates never conflicts with a site's content
+      function fetchConfig(options) {
+        return fetch('videos.json', options)
+          .then(response => response.ok ? response : fetch('videos.example.json', options))
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Failed to load videos.json or videos.example.json');
+            }
+            return response.json();
+          });
+      }
+
       // Load the config when the page opens, so it is ready when the user taps "Accept"
       // no-cache: ask the server every time, so a newly pushed videos.json is used right away
-      const configRequest = fetch('videos.json', { cache: 'no-cache' }).then(response => response.json());
+      const configRequest = fetchConfig({ cache: 'no-cache' });
       configRequest.then(data => { configData = data; }).catch(() => {});
 
       // Step 2: Consent to Geolocation and Initialize Map
@@ -1040,24 +1054,6 @@
       /**                       **/
       /**    LOAD CONFIG API    **/
       /**                       **/
-
-      // Step 5: Fetch videos.json file and load locations to map
-      function fetchVideoLocations() {
-        fetch('videos.json')
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error('Failed to load videos.json');
-            }
-            return response.json();
-          })
-          .then((data) => {
-            configData = data;
-            videosData = data.locations || data; // Support both new structure and old array format
-            console.log('Loaded video data:', videosData); // Log the fetched data
-            addVideoLocationsToMap(); // Add locations to map only after data is fetched
-          })
-          .catch((error) => console.error('Error loading video locations:', error));
-      }
 
       // Step 6: Add video location circles to the map
       function addVideoLocationsToMap() {

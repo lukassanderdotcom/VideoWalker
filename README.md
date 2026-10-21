@@ -32,7 +32,7 @@ A location-based web application that plays YouTube videos when users physically
 Get your own VideoWalker running in 3 steps:
 
 1. **Fork this repository**
-2. **Configure your locations** (edit `videos.json`)
+2. **Configure your locations** (copy `videos.example.json` to `videos.json` and edit it)
 3. **Publish to GitHub Pages**
 
 Read on for detailed instructions!
@@ -53,7 +53,15 @@ Read on for detailed instructions!
 
 ### Step 2: Configure Your Video Locations
 
-Edit the `videos.json` file to customize your experience. This file contains two main sections:
+The repository ships `videos.example.json`. Copy it to `videos.json` and edit your copy, or open the [Editor](#editor) and save: it creates `videos.json` for you. The app loads `videos.json` and only falls back to `videos.example.json` while there is none.
+
+```bash
+cp videos.example.json videos.json
+```
+
+Don't edit `videos.example.json` for your site. That file belongs to this repository, and keeping your content in `videos.json` lets you [pull updates](#getting-updates) without conflicts.
+
+`videos.json` contains these main sections:
 
 #### Default Position
 
@@ -188,6 +196,31 @@ git push origin master
 # Then follow steps 2-7 from Option A above
 ```
 
+### Getting Updates
+
+Your site's content lives in your own files (`videos.json`, `audio/`, images), and this repository only changes `videos.example.json` and the code. So you can pull new versions without merge conflicts:
+
+```bash
+# Once: add this repository as "upstream"
+git remote add upstream https://github.com/maybites/VideoWalker.git
+
+# Every time you want the latest version
+git pull upstream master
+git push origin master
+```
+
+New settings always have defaults, so your `videos.json` keeps working after an update. Compare it with `videos.example.json` to see what's new.
+
+**Forks created before `videos.example.json` existed:** the first pull reports a conflict on `videos.json` ("deleted in upstream, modified in HEAD"). Keep your file:
+
+```bash
+git checkout --ours videos.json
+git add videos.json
+git commit
+```
+
+After that, `videos.json` never conflicts again.
+
 ### Step 4: Test Your Deployment
 
 1. Open your GitHub Pages URL on a mobile device
@@ -245,9 +278,9 @@ Popular alternatives:
 
 ### Editor
 
-`editor.html` edits everything in `videos.json` on a map, so you don't have to write JSON by hand. Open `https://YOUR-USERNAME.github.io/VideoWalker/editor.html` (or the file served by a local web server). It starts with the published `videos.json`.
+`editor.html` edits everything in `videos.json` on a map, so you don't have to write JSON by hand. Open `https://YOUR-USERNAME.github.io/VideoWalker/editor.html` (or the file served by a local web server). It starts with the published `videos.json`, or with `videos.example.json` if your site has no `videos.json` yet.
 
-- **Chrome/Edge:** click **Open project folder…** and choose your local VideoWalker folder. The editor then edits the local `videos.json` and **Save to project folder** writes it back, together with new images and audio files.
+- **Chrome/Edge:** click **Open project folder…** and choose your local VideoWalker folder. The editor then edits the local `videos.json` and **Save to project folder** writes it back, together with new images and audio files. In a fresh clone it starts from `videos.example.json`, and saving creates `videos.json`.
 - **Other browsers:** click **Open videos.json…** to edit your local file, then **Download videos.json** (and any new files) and move them into the project folder.
 
 The tabs:
@@ -261,7 +294,7 @@ Click a circle or an entry to edit it, and drag the markers to move things. Comm
 
 ### Audio Areas
 
-Audio areas play a sound while a visitor is inside them. The audio fades in when they enter, fades out when they leave, and fades out while a video is open. It continues where it stopped when they come back. Visitors don't see the areas or the player. **Toggle Debug Mode** shows the areas as blue dashed circles and the file that is playing.
+Audio areas play a sound while a visitor is inside them. The audio fades in when they enter, fades out when they leave, and fades out while a video is open. It continues where it stopped when they come back. Visitors don't see the areas or the player. **Toggle Debug Mode** shows the areas as blue dashed circles and the file that is playing. Tap a circle and **▶ Play audio** to hear an area from anywhere, e.g. to check that its file loads.
 
 ```json
 "audio": {
@@ -388,12 +421,13 @@ watchId = navigator.geolocation.watchPosition(
 ### File Structure
 ```
 VideoWalker/
-├── index.html         # Main application file (HTML, CSS, JavaScript)
-├── videos.json        # Configuration file for locations and videos
-├── editor.html        # Editor for videos.json (see "Editor")
-├── audio/             # Optional audio files for the audio areas
-├── pirate_map.png     # Optional drawn map overlay (see "Custom Drawn Map Overlay")
-└── README.md          # This file
+├── index.html          # Main application file (HTML, CSS, JavaScript)
+├── videos.example.json # Example configuration, maintained by this repository
+├── videos.json         # Your site's configuration (you create it, see Step 2)
+├── editor.html         # Editor for videos.json (see "Editor")
+├── audio/              # Optional audio files for the audio areas
+├── pirate_map.png      # Optional drawn map overlay (see "Custom Drawn Map Overlay")
+└── README.md           # This file
 ```
 
 ---
