@@ -21,8 +21,8 @@
         "de": "Standort 1"
       },
       "description": {
-        "en": "video location 1",
-        "de": "video location 1"
+        "de": "click to play",
+        "en": "click to play"
       }
     },
     {
@@ -35,8 +35,8 @@
         "de": "Standort 2"
       },
       "description": {
-        "en": "video location 2",
-        "de": "Zweiter Video-Standort - 20m Radius"
+        "en": "click to play",
+        "de": "click to play"
       }
     },
     {
@@ -49,8 +49,8 @@
         "de": "Standort 3"
       },
       "description": {
-        "en": "Third video location - 10m radius",
-        "de": "Dritter Video-Standort - 10m Radius"
+        "en": "click to play",
+        "de": "click to play"
       }
     },
     {
@@ -63,8 +63,8 @@
         "de": "Standort 4"
       },
       "description": {
-        "en": "Fourth video location - 20m radius",
-        "de": "Vierter Video-Standort - 20m Radius"
+        "en": "click to play",
+        "de": "click to play"
       }
     },
     {
@@ -76,7 +76,10 @@
         "en": "Location 5",
         "de": "Standort 5"
       },
-      "description": {}
+      "description": {
+        "en": "click to play",
+        "de": "click to play"
+      }
     }
   ],
   "overlay": {
