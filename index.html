@@ -1483,7 +1483,6 @@
 
       // Step 9: Play video (handles delayed video loading)
       function playVideo(videoUrl) {
-        fadeOutAllAudio();
         const videoType = detectVideoType(videoUrl);
         currentVideoType = videoType;
 
@@ -1561,6 +1560,7 @@
         });
         
         vimeoPlayer.on('play', function() {
+          fadeOutAllAudio();
           isVideoPlaying = true;
           console.log('Vimeo video started playing - location updates paused');
         });
@@ -1680,6 +1680,7 @@
       // call back function when youtube player status changed
       function onPlayerStateChange(event) {
         if (event.data == YT.PlayerState.PLAYING && !done) {
+          fadeOutAllAudio();
           isVideoPlaying = true;
           console.log('Video started playing - location updates paused');
           done = true;
