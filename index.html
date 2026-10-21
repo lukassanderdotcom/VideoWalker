@@ -1186,9 +1186,9 @@
         if (audioContext || !AudioContextClass) {
           return;
         }
-        // Allow area audio to mix with Vimeo playback while it fades out
+        // Play even when the iPhone's silent switch is on, like the videos do
         if (navigator.audioSession) {
-          navigator.audioSession.type = 'ambient';
+          navigator.audioSession.type = 'playback';
         }
         audioContext = new AudioContextClass();
         audioContext.resume();
