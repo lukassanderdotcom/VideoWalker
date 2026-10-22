@@ -129,10 +129,10 @@
       },
       {
         "name": "Audio Area 4",
-        "url": "",
-        "latitude": 47.3800732,
-        "longitude": 8.5317032,
-        "radius": 35,
+        "url": "audio/02-State-Forest.mp3",
+        "latitude": 47.3801153,
+        "longitude": 8.5317281,
+        "radius": 40,
         "volume": 1,
         "loop": true,
         "edgeVolume": 0.2
