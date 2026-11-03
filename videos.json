@@ -80,20 +80,6 @@
         "en": "click to play when on location",
         "de": "klicken zum Abspielen sobald vor Ort"
       }
-    },
-    {
-      "videoUrl": "https://vimeo.com/1237998592?fl=tl&fe=ec&share=copy",
-      "latitude": 47.3877298,
-      "longitude": 8.5338757,
-      "radius": 20,
-      "title": {
-        "en": "Video Test Zone",
-        "de": "Standort 6"
-      },
-      "description": {
-        "en": "click to play when on location",
-        "de": "klicken zum Abspielen sobald vor Ort"
-      }
     }
   ],
   "overlay": {
@@ -160,16 +146,6 @@
         "volume": 1,
         "loop": true,
         "edgeVolume": 0.2
-      },
-      {
-        "name": "Audio Test Zone",
-        "url": "audio/station4.mp3",
-        "latitude": 47.3876983,
-        "longitude": 8.5338571,
-        "radius": 35,
-        "centerVolume": 1,
-        "edgeVolume": 0.2,
-        "loop": true
       }
     ]
   }
