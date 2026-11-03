@@ -13,8 +13,8 @@
   "locations": [
     {
       "videoUrl": "https://vimeo.com/1237998589?fl=tl&fe=ec&share=copy",
-      "latitude": 47.3803506,
-      "longitude": 8.5294791,
+      "latitude": 47.3803466,
+      "longitude": 8.5295219,
       "radius": 10,
       "title": {
         "en": "Location 1",
@@ -27,8 +27,8 @@
     },
     {
       "videoUrl": "https://vimeo.com/1237998591?fl=tl&fe=ec&share=copy",
-      "latitude": 47.3799476,
-      "longitude": 8.5296005,
+      "latitude": 47.3799707,
+      "longitude": 8.5296424,
       "radius": 10,
       "title": {
         "en": "Location 2",
@@ -41,8 +41,8 @@
     },
     {
       "videoUrl": "https://vimeo.com/1237998590?fl=tl&fe=ec&share=copy",
-      "latitude": 47.3795915,
-      "longitude": 8.5310331,
+      "latitude": 47.3796287,
+      "longitude": 8.5310593,
       "radius": 10,
       "title": {
         "en": "Location 3",
@@ -69,8 +69,8 @@
     },
     {
       "videoUrl": "https://vimeo.com/1237998645?fl=tl&fe=ec&share=copy",
-      "latitude": 47.3791549,
-      "longitude": 8.5328431,
+      "latitude": 47.3793375,
+      "longitude": 8.5329688,
       "radius": 10,
       "title": {
         "en": "Location 5",
@@ -80,10 +80,24 @@
         "en": "click to play when on location",
         "de": "klicken zum Abspielen sobald vor Ort"
       }
+    },
+    {
+      "videoUrl": "https://vimeo.com/1237998592?fl=tl&fe=ec&share=copy",
+      "latitude": 47.3877298,
+      "longitude": 8.5338757,
+      "radius": 20,
+      "title": {
+        "en": "Video Test Zone",
+        "de": "Standort 6"
+      },
+      "description": {
+        "en": "click to play when on location",
+        "de": "klicken zum Abspielen sobald vor Ort"
+      }
     }
   ],
   "overlay": {
-    "image": "europaallee.png",
+    "image": "map_overlay_neu.png",
     "topLeft": {
       "latitude": 47.3828028,
       "longitude": 8.525856
@@ -99,9 +113,9 @@
     "areas": [
       {
         "name": "Audio Area 1",
-        "url": "audio/01-STRANGE-NEIGHBOURHOOD.mp3",
-        "latitude": 47.3803872,
-        "longitude": 8.5293117,
+        "url": "audio/station1.mp3",
+        "latitude": 47.3803699,
+        "longitude": 8.5294012,
         "radius": 35,
         "volume": 1,
         "loop": true,
@@ -109,27 +123,27 @@
       },
       {
         "name": "Audio Area 2",
-        "url": "audio/01-STRANGE-NEIGHBOURHOOD.mp3",
+        "url": "audio/station2.mp3",
         "latitude": 47.3799718,
         "longitude": 8.5296798,
         "radius": 25,
         "volume": 1,
         "loop": true,
-        "edgeVolume": 0.5
+        "edgeVolume": 0.2
       },
       {
         "name": "Audio Area 3",
-        "url": "",
-        "latitude": 47.3795854,
-        "longitude": 8.5310331,
-        "radius": 35,
+        "url": "audio/station3.mp3",
+        "latitude": 47.3796388,
+        "longitude": 8.5309735,
+        "radius": 37,
         "volume": 1,
         "loop": true,
         "edgeVolume": 0.2
       },
       {
         "name": "Audio Area 4",
-        "url": "audio/02-State-Forest.mp3",
+        "url": "audio/station4.mp3",
         "latitude": 47.3801153,
         "longitude": 8.5317281,
         "radius": 40,
@@ -139,22 +153,22 @@
       },
       {
         "name": "Audio Area 5",
-        "url": "",
-        "latitude": 47.3792315,
-        "longitude": 8.5328328,
-        "radius": 35,
+        "url": "audio/station5.mp3",
+        "latitude": 47.3793223,
+        "longitude": 8.5329648,
+        "radius": 40,
         "volume": 1,
         "loop": true,
         "edgeVolume": 0.2
       },
       {
-        "name": "Test Zone",
-        "url": "audio/01-STRANGE-NEIGHBOURHOOD.mp3",
-        "latitude": 47.387694,
-        "longitude": 8.5338315,
+        "name": "Audio Test Zone",
+        "url": "audio/station4.mp3",
+        "latitude": 47.3876983,
+        "longitude": 8.5338571,
         "radius": 35,
         "centerVolume": 1,
-        "edgeVolume": 0,
+        "edgeVolume": 0.2,
         "loop": true
       }
     ]
