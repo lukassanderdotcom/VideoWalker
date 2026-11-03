@@ -1577,6 +1577,7 @@
         vimeoPlayer.on('ended', function() {
           isVideoPlaying = false;
           console.log('Vimeo video ended - resuming location updates');
+          closeVideoButton.click();
         });
         
         vimeoPlayer.on('error', function(error) {
