@@ -349,26 +349,26 @@
   <body>
     <div id="languagePage" class="intro-page">
       <div>
-        <button class="languageButton" data-lang="en">English</button>
-        <button class="languageButton" data-lang="de">Deutsch</button>
+        <button class="languageButton" data-lang="en">english</button>
+        <button class="languageButton" data-lang="de">deutsch</button>
       </div>
     </div>
     
     <div id="fullscreenPage" class="intro-page hidden">
       <h1 data-i18n="fullscreenTitle">Location-Based YouTube Video Experience</h1>
-      <p data-i18n="fullscreenDescription">For the best experience, we recommend using fullscreen mode.</p>
-      <button id="enterFullscreen" data-i18n="fullscreenButton">Enter Fullscreen & Start</button>
+      <p data-i18n="fullscreenDescription">For the best experience, we recommend using fullscreen mode and headphones.</p>
+      <button id="enterFullscreen" data-i18n="fullscreenButton">enter fullscreen & start</button>
     </div>
     
     <div id="infoPage" class="intro-page hidden">
       <h1 data-i18n="infoTitle">Welcome to the Location-Based YouTube Video Experience</h1>
       <p data-i18n="infoDescription">This page will guide you through an interactive location-based video experience.</p>
-      <button id="nextToConsent" data-i18n="nextButton">Next</button>
+      <button id="nextToConsent" data-i18n="nextButton">next</button>
     </div>
 
     <div id="consentPage" class="intro-page hidden">
       <h2 data-i18n="consentTitle">We need your consent for location tracking</h2>
-      <button id="acceptConsent" data-i18n="consentButton">Accept and Continue</button>
+      <button id="acceptConsent" data-i18n="consentButton">accept and continue</button>
     </div>
 
     <div id="mapPage" class="hidden">
@@ -426,6 +426,7 @@
       var videoToLoad = null;
       var isPlayerReady = false;
       var isVideoPlaying = false;
+      var videoPlaybackStarted = false;
       var vimeoPlayer = null;
       var currentVideoType = null; // 'youtube' or 'vimeo'
 
@@ -467,14 +468,14 @@
       // Translations
       const translations = {
         en: {
-          fullscreenTitle: "VideoWalk Experience",
-          fullscreenDescription: "For the best experience, we recommend using fullscreen mode.",
-          fullscreenButton: "Enter Fullscreen & Start",
-          infoTitle: "Welcome to the VideoWalk Experience",
-          infoDescription: "This page will guide you through an interactive location-based video experience.",
-          nextButton: "Next",
+          fullscreenTitle: "AudioVideoMap",
+          fullscreenDescription: "For the best experience, we recommend using fullscreen mode and headphones.",
+          fullscreenButton: "enter fullscreen & start",
+          infoTitle: "Welcome to the AudioVideoMap",
+          infoDescription: "In the red circles are videos, in the red shaded zones you can hear sounds - enjoy!",
+          nextButton: "next",
           consentTitle: "We need your consent for location tracking",
-          consentButton: "Accept and Continue",
+          consentButton: "accept and continue",
           mapTitle: "Your Current Location",
           playVideoButton: "Play Video",
           closeVideoButton: "x",
@@ -493,14 +494,14 @@
           iosInstallDismiss: "Got it"
         },
         de: {
-          fullscreenTitle: "VideoWalk Erlebnis",
-          fullscreenDescription: "Für das beste Erlebnis empfehlen wir den Vollbildmodus.",
-          fullscreenButton: "Vollbild aktivieren & Starten",
-          infoTitle: "Willkommen beim VideoWalk Erlebnis",
-          infoDescription: "Diese Seite führt Sie durch ein interaktives standortbasiertes Video-Erlebnis.",
-          nextButton: "Weiter",
+          fullscreenTitle: "AudioVideoMap",
+          fullscreenDescription: "Für das beste Erlebnis empfehlen wir den Vollbildmodus und Kopfhörer.",
+          fullscreenButton: "Vollbild aktivieren & starten",
+          infoTitle: "Willkommen auf der AudioVideoMap",
+          infoDescription: "In den roten Kreisen befinden sich Videos, in den rot schattierten Bereichen sind Klänge zu hören - viel Spass!",
+          nextButton: "weiter",
           consentTitle: "Wir benötigen Ihre Zustimmung zur Standortverfolgung",
-          consentButton: "Akzeptieren und Fortfahren",
+          consentButton: "akzeptieren und fortfahren",
           mapTitle: "Ihr aktueller Standort",
           playVideoButton: "Video abspielen",
           closeVideoButton: "x",
@@ -1206,7 +1207,7 @@
           const gain = audioContext.createGain();
           gain.gain.value = 0;
           audioContext.createMediaElementSource(element).connect(gain).connect(audioContext.destination);
-          const player = { element, gain, areaIndex: null, direction: null, stopTimer: null, error: null };
+          const player = { element, gain, areaIndex: null, direction: null, targetVolume: 0, stopTimer: null, error: null };
           element.addEventListener('error', () => {
             if (player.areaIndex !== null) {
               player.error = 'cannot load the file';
@@ -1259,21 +1260,46 @@
         if (!audioContext) {
           return;
         }
-        const videoOpen = !videoPage.classList.contains('hidden'); // Audio stays silent while a video is open
         audioAreas.forEach((area, index) => {
-          const nearby = debugAudioAreas.has(index) || (lastPosition !== null &&
-            map.distance([lastPosition.latitude, lastPosition.longitude], [area.latitude, area.longitude]) <= area.radius);
-          const inside = !videoOpen && audioFile(area) !== '' && nearby;
+          const distance = lastPosition === null ? Infinity :
+            map.distance([lastPosition.latitude, lastPosition.longitude], [area.latitude, area.longitude]);
+          const debugPlayback = debugAudioAreas.has(index);
+          const nearby = debugPlayback || distance <= area.radius;
+          const inside = !videoPlaybackStarted && audioFile(area) !== '' && nearby;
           const player = audioPlayers.find(p => p.areaIndex === index);
           if (inside && !player) {
             startAudio(index);
           } else if (inside && player.direction === 'out') {
             fadeAudio(player, 'in'); // Back inside while it was still fading out
+          } else if (inside) {
+            setAudioGain(player, audioTargetVolume(area, index), 0.5);
           } else if (!inside && player && player.direction === 'in') {
             fadeAudio(player, 'out');
           }
         });
         updateDebugAudio();
+      }
+
+      function audioTargetVolume(area, index) {
+        const centerVolume = audioCenterVolume(area);
+        if (debugAudioAreas.has(index)) {
+          return centerVolume;
+        }
+        if (lastPosition === null || area.radius <= 0) {
+          return 0;
+        }
+        const distance = map.distance([lastPosition.latitude, lastPosition.longitude], [area.latitude, area.longitude]);
+        const intensity = Math.max(0, Math.min(1, 1 - distance / area.radius));
+        const edgeVolume = audioEdgeVolume(area);
+        return edgeVolume + (centerVolume - edgeVolume) * intensity;
+      }
+
+      function audioCenterVolume(area) {
+        return Math.max(0, Math.min(1, area.centerVolume ?? area.volume ?? 1));
+      }
+
+      function audioEdgeVolume(area) {
+        return Math.max(0, Math.min(1, area.edgeVolume ?? 0));
       }
 
       function startAudio(index) {
@@ -1301,9 +1327,12 @@
         const seconds = configData?.audio?.fadeSeconds ?? 3;
         const gain = player.gain.gain;
         const now = audioContext.currentTime;
-        gain.cancelScheduledValues(now);
-        gain.setValueAtTime(gain.value, now);
-        gain.linearRampToValueAtTime(direction === 'in' ? (area.volume ?? 1) : 0, now + seconds);
+        if (direction === 'in') {
+          setAudioGain(player, audioTargetVolume(area, player.areaIndex), seconds);
+        } else {
+          holdAudioGain(gain, now);
+          gain.linearRampToValueAtTime(0, now + seconds);
+        }
         player.direction = direction;
         clearTimeout(player.stopTimer);
 
@@ -1319,6 +1348,23 @@
             player.direction = null;
             updateDebugAudio();
           }, seconds * 1000);
+        }
+      }
+
+      function setAudioGain(player, volume, seconds) {
+        const gain = player.gain.gain;
+        const now = audioContext.currentTime;
+        player.targetVolume = volume;
+        holdAudioGain(gain, now);
+        gain.linearRampToValueAtTime(volume, now + seconds);
+      }
+
+      function holdAudioGain(gain, time) {
+        if (typeof gain.cancelAndHoldAtTime === 'function') {
+          gain.cancelAndHoldAtTime(time);
+        } else {
+          gain.cancelScheduledValues(time);
+          gain.setValueAtTime(gain.value, time);
         }
       }
 
@@ -1346,7 +1392,7 @@
           const area = audioAreas[player.areaIndex];
           const file = audioFile(area).split('/').pop();
           const state = player.error ? 'error: ' + player.error
-            : player.direction === 'in' ? Math.round((area.volume ?? 1) * 100) + '%' : 'fading out';
+            : player.direction === 'in' ? Math.round(player.targetVolume * 100) + '%' : 'fading out';
           return `${area.name || 'Audio area ' + (player.areaIndex + 1)} – ${file} (${state})`;
         });
         document.getElementById('debugAudio').textContent = 'Audio: ' + (playing.length ? playing.join(', ') : '--');
@@ -1444,7 +1490,7 @@
 
       // Step 9: Play video (handles delayed video loading)
       function playVideo(videoUrl) {
-        fadeOutAllAudio();
+        videoPlaybackStarted = false;
         const videoType = detectVideoType(videoUrl);
         currentVideoType = videoType;
 
@@ -1500,7 +1546,7 @@
       }
       
       function playVimeoVideo(videoUrl) {
-        const videoId = extractVimeoId(videoUrl);
+        const video = extractVimeoVideo(videoUrl);
         
         // Hide YouTube player, show Vimeo player
         document.getElementById('player').style.display = 'none';
@@ -1513,14 +1559,17 @@
         
         // Create new Vimeo player - let it handle responsive sizing
         vimeoPlayer = new Vimeo.Player('vimeoPlayer', {
-          id: videoId,
-          autoplay: true,
+          id: video.id,
+          ...(video.hash ? { h: video.hash } : {}),
+          muted: false,
           byline: false,      // Hide author name
           portrait: false,    // Hide author profile image
           title: false        // Hide video title
         });
         
         vimeoPlayer.on('play', function() {
+          videoPlaybackStarted = true;
+          fadeOutAllAudio();
           isVideoPlaying = true;
           console.log('Vimeo video started playing - location updates paused');
         });
@@ -1528,16 +1577,19 @@
         vimeoPlayer.on('ended', function() {
           isVideoPlaying = false;
           console.log('Vimeo video ended - resuming location updates');
+          closeVideoButton.click();
         });
         
         vimeoPlayer.on('error', function(error) {
           console.error('Vimeo player error:', error);
           alert('Failed to load the Vimeo video. Please try again later.');
         });
+
       }
 
       // Stop video playback
       function stopVideo() {
+        videoPlaybackStarted = false;
         if (currentVideoType === 'youtube') {
           if (player && typeof player.stopVideo === 'function') {
             player.stopVideo();
@@ -1591,10 +1643,18 @@
         return videoIdMatch ? videoIdMatch[1] : null;
       }
       
-      // Extract Vimeo video ID from various URL formats
-      function extractVimeoId(url) {
-        const videoIdMatch = url.match(/(?:https?:\/\/)?(?:www\.)?vimeo\.com\/(\d+)/);
-        return videoIdMatch ? videoIdMatch[1] : null;
+      // Extract Vimeo ID and unlisted-video hash from share URLs
+      function extractVimeoVideo(url) {
+        const parsedUrl = new URL(url);
+        const pathParts = parsedUrl.pathname.split('/').filter(Boolean);
+        const videoIndex = pathParts.findIndex(part => /^\d+$/.test(part));
+        if (videoIndex === -1) {
+          return null;
+        }
+        return {
+          id: pathParts[videoIndex],
+          hash: pathParts[videoIndex + 1] || parsedUrl.searchParams.get('h')
+        };
       }
 
       // YouTube IFrame API Ready callback (must be global)
@@ -1624,6 +1684,8 @@
       // call back function when youtube player status changed
       function onPlayerStateChange(event) {
         if (event.data == YT.PlayerState.PLAYING && !done) {
+          videoPlaybackStarted = true;
+          fadeOutAllAudio();
           isVideoPlaying = true;
           console.log('Video started playing - location updates paused');
           done = true;

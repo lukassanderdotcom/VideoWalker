@@ -306,7 +306,8 @@ Audio areas play a sound while a visitor is inside them. The audio fades in when
       "latitude": 47.3905,
       "longitude": 8.5115,
       "radius": 30,
-      "volume": 0.8,
+      "centerVolume": 1,
+      "edgeVolume": 0,
       "loop": true
     }
   ]
@@ -317,7 +318,8 @@ Audio areas play a sound while a visitor is inside them. The audio fades in when
 - `name`: shown in debug mode only
 - `url`: a file in the project (the editor copies chosen files into the `audio` folder) or a web URL. Web URLs must allow cross-origin access (CORS), otherwise the app can't fade them.
 - `radius`: in meters
-- `volume`: 0 to 1
+- `centerVolume`: volume at the center, from 0 to 1 (default `1`)
+- `edgeVolume`: volume at the edge, from 0 to 1 (default `0`)
 - `loop`: start again at the end (default `true`)
 
 Up to three areas can play at the same time, so overlapping areas crossfade. Test on an iPhone: iOS only allows the audio because it is unlocked when the visitor taps **Accept and Continue**.

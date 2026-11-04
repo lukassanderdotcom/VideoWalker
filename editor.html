@@ -904,7 +904,11 @@
           area.radius = value;
           refreshCircles();
         }, { min: 1, step: 1 });
-        rangeField(body, 'Volume', area.volume ?? 1, value => { area.volume = value; });
+        rangeField(body, 'Center volume', area.centerVolume ?? area.volume ?? 1, value => {
+          area.centerVolume = value;
+          delete area.volume;
+        });
+        rangeField(body, 'Edge volume', area.edgeVolume ?? 0, value => { area.edgeVolume = value; });
         checkboxField(body, 'Loop (start again at the end)', area.loop !== false, checked => { area.loop = checked; });
 
         deleteButton(body, 'Delete audio area', 'audio', index);
@@ -1006,7 +1010,7 @@
             description: {}
           });
         } else {
-          ensureAudio().areas.push({ name: 'Audio area ' + (audioAreas().length + 1), url: '', ...position, radius: 30, volume: 1, loop: true });
+          ensureAudio().areas.push({ name: 'Audio area ' + (audioAreas().length + 1), url: '', ...position, radius: 30, centerVolume: 1, edgeVolume: 0, loop: true });
         }
         markDirty();
         refreshMarkers();

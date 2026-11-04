@@ -1,0 +1,152 @@
+{
+  "version": "1.2.9",
+  "showDebugToggle": false,
+  "impressum": {
+    "en": "<p>Konzept und Video: Lukas Sander<p>\nMedienarchitektur: Martin Fröhlich<p>\nSound: Christian Berkes<p>\nKontakt: mail@lukassander.com<p>\n</p>",
+    "de": "<p>Concept and Video: Lukas Sander<p>\nMedia Architecture: Martin Fröhlich<p>\nSound: Christian Berkes</p>\nContact: mail@lukassander.com<p>\n<p>"
+  },
+  "defaultPosition": {
+    "latitude": 47.3797993,
+    "longitude": 8.5300855,
+    "zoom": 17
+  },
+  "locations": [
+    {
+      "videoUrl": "https://vimeo.com/1237998589?fl=tl&fe=ec&share=copy",
+      "latitude": 47.3803466,
+      "longitude": 8.5295219,
+      "radius": 10,
+      "title": {
+        "en": "Location 1",
+        "de": "Standort 1"
+      },
+      "description": {
+        "de": "klicken zum Abspielen sobald vor Ort",
+        "en": "click to play when on location"
+      }
+    },
+    {
+      "videoUrl": "https://vimeo.com/1237998591?fl=tl&fe=ec&share=copy",
+      "latitude": 47.3799707,
+      "longitude": 8.5296424,
+      "radius": 10,
+      "title": {
+        "en": "Location 2",
+        "de": "Standort 2"
+      },
+      "description": {
+        "en": "click to play when on location",
+        "de": "klicken zum Abspielen sobald vor Ort"
+      }
+    },
+    {
+      "videoUrl": "https://vimeo.com/1237998590?fl=tl&fe=ec&share=copy",
+      "latitude": 47.3796287,
+      "longitude": 8.5310593,
+      "radius": 10,
+      "title": {
+        "en": "Location 3",
+        "de": "Standort 3"
+      },
+      "description": {
+        "en": "click to play when on location",
+        "de": "klicken zum Abspielen sobald vor Ort"
+      }
+    },
+    {
+      "videoUrl": "https://vimeo.com/1237998592?fl=tl&fe=ec&share=copy",
+      "latitude": 47.380187,
+      "longitude": 8.5317659,
+      "radius": 10,
+      "title": {
+        "en": "Location 4",
+        "de": "Standort 4"
+      },
+      "description": {
+        "en": "click to play when on location",
+        "de": "klicken zum Abspielen sobald vor Ort"
+      }
+    },
+    {
+      "videoUrl": "https://vimeo.com/1237998645?fl=tl&fe=ec&share=copy",
+      "latitude": 47.3793375,
+      "longitude": 8.5329688,
+      "radius": 10,
+      "title": {
+        "en": "Location 5",
+        "de": "Standort 5"
+      },
+      "description": {
+        "en": "click to play when on location",
+        "de": "klicken zum Abspielen sobald vor Ort"
+      }
+    }
+  ],
+  "overlay": {
+    "image": "map_overlay_neu.png",
+    "topLeft": {
+      "latitude": 47.3828028,
+      "longitude": 8.525856
+    },
+    "bottomRight": {
+      "latitude": 47.3771241,
+      "longitude": 8.5341774
+    },
+    "opacity": 1
+  },
+  "audio": {
+    "fadeSeconds": 3,
+    "areas": [
+      {
+        "name": "Audio Area 1",
+        "url": "audio/station1.mp3",
+        "latitude": 47.3803699,
+        "longitude": 8.5294012,
+        "radius": 35,
+        "volume": 1,
+        "loop": true,
+        "edgeVolume": 0.2
+      },
+      {
+        "name": "Audio Area 2",
+        "url": "audio/station2.mp3",
+        "latitude": 47.3799718,
+        "longitude": 8.5296798,
+        "radius": 25,
+        "volume": 1,
+        "loop": true,
+        "edgeVolume": 0.2
+      },
+      {
+        "name": "Audio Area 3",
+        "url": "audio/station3.mp3",
+        "latitude": 47.3796388,
+        "longitude": 8.5309735,
+        "radius": 37,
+        "volume": 1,
+        "loop": true,
+        "edgeVolume": 0.2
+      },
+      {
+        "name": "Audio Area 4",
+        "url": "audio/station4.mp3",
+        "latitude": 47.3801153,
+        "longitude": 8.5317281,
+        "radius": 40,
+        "volume": 1,
+        "loop": true,
+        "edgeVolume": 0.2
+      },
+      {
+        "name": "Audio Area 5",
+        "url": "audio/station5.mp3",
+        "latitude": 47.3793223,
+        "longitude": 8.5329648,
+        "radius": 40,
+        "volume": 1,
+        "loop": true,
+        "edgeVolume": 0.2
+      }
+    ]
+  }
+}
