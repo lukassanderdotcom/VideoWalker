@@ -113,6 +113,7 @@ Each location in the `locations` array defines a video trigger zone:
 - `latitude`: Location latitude in decimal degrees
 - `longitude`: Location longitude in decimal degrees
 - `radius`: Trigger radius in meters (how close users must be)
+- `lightHeight` (optional): height in meters of the location's light above the floor in the walking-light prototype (`prototype/light.html`). On the Negrellisteg the floor is the bridge deck. Leave it out to use the prototype's default height slider.
 - `title`: Location name in each supported language
 - `description`: Location description in each supported language
 

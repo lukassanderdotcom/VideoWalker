@@ -840,6 +840,8 @@
           location.radius = value;
           refreshCircles();
         }, { min: 1, step: 1 });
+        optionalNumberField(body, 'Light height above floor (m)', location, 'lightHeight',
+          { min: 0, step: 0.1, placeholder: 'empty = default' });
 
         languages.forEach(lang => {
           textField(body, `Title (${lang})`, localizedText(location.title, lang), value => {
@@ -1083,6 +1085,27 @@
           input.classList.toggle('invalid', !valid);
           if (valid) {
             onInput(number);
+          }
+        });
+        return input;
+      }
+
+      // Number that may be left empty: empty removes the key, so the app's default applies
+      function optionalNumberField(parent, label, item, key, { min, max, step, placeholder = '' } = {}) {
+        const input = textField(parent, label, item[key], () => {}, { placeholder });
+        input.type = 'number';
+        Object.assign(input, { min: min ?? '', max: max ?? '', step: step ?? 'any' });
+        input.addEventListener('input', () => {
+          if (input.value === '') {
+            input.classList.remove('invalid');
+            delete item[key];
+            return;
+          }
+          const number = Number(input.value);
+          const valid = Number.isFinite(number) && (min === undefined || number >= min) && (max === undefined || number <= max);
+          input.classList.toggle('invalid', !valid);
+          if (valid) {
+            item[key] = number;
           }
         });
         return input;

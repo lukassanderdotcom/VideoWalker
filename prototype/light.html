@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Walking Light Prototype</title>
+  <link href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" rel="stylesheet" />
+  <style>
+    html, body { margin: 0; height: 100%; background: #111; font: 13px/1.4 system-ui, sans-serif; }
+    #map { position: absolute; inset: 0; }
+    #map canvas { cursor: crosshair; }
+    #panel {
+      position: absolute; top: 12px; left: 12px; z-index: 2; width: 270px;
+      background: rgba(18, 16, 26, .88); color: #eee; border-radius: 8px; padding: 10px 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.4);
+    }
+    #panel h1 { font-size: 14px; margin: 0 0 6px; }
+    #panel label { display: grid; grid-template-columns: 1fr 52px; gap: 4px 8px; margin: 6px 0 0; align-items: center; }
+    #panel label input[type=range] { grid-column: 1 / 3; width: 100%; }
+    #panel output { text-align: right; color: #bbb; font-variant-numeric: tabular-nums; }
+    #panel .row { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
+    #panel select { background: #222; color: #eee; border: 1px solid #444; border-radius: 4px; }
+    #status { margin-top: 8px; color: #9a9; font-variant-numeric: tabular-nums; }
+    #hint { color: #aaa; margin: 0; }
+    #toggle { position: absolute; top: 12px; right: 12px; z-index: 2; }
+  </style>
+</head>
+<body>
+<div id="map"></div>
+<div id="panel">
+  <h1>Walking light</h1>
+  <p id="hint">Move the mouse through the streets. Shift + drag pans the map. Press <b>F</b> to freeze or unfreeze the light.</p>
+  <label>Shear mode
+    <select id="mode" style="grid-column: 2"><option value="0">perspective</option><option value="1">uniform lean</option></select>
+  </label>
+  <label>Virtual camera height H (m) <output id="vH"></output><input id="H" type="range" min="60" max="800" step="5" value="115"></label>
+  <label>Lean k (uniform mode) <output id="vK"></output><input id="K" type="range" min="0" max="1.5" step="0.01" value="0.29"></label>
+  <label>Shear strength <output id="vS"></output><input id="S" type="range" min="0" max="1.5" step="0.01" value="1.02"></label>
+  <label>Light height above floor (m) <output id="vLH"></output><input id="LH" type="range" min="0.5" max="8" step="0.1" value="2.4"></label>
+  <label>Intensity <output id="vI"></output><input id="I" type="range" min="1" max="6" step="0.01" value="4.49"></label>
+  <label>Falloff (2 = physical) <output id="vD"></output><input id="D" type="range" min="0" max="2" step="0.05" value="1.85"></label>
+  <label>Exposure <output id="vE"></output><input id="E" type="range" min="0.1" max="4" step="0.05" value="0.9"></label>
+  <label>Ambient <output id="vA"></output><input id="A" type="range" min="0" max="0.3" step="0.005" value="0"></label>
+  <label>Bridge deck height (m) <output id="vBH"></output><input id="BH" type="range" min="3" max="14" step="0.1" value="4.9"></label>
+  <h1 style="margin-top:12px">Video locations</h1>
+  <label>Colour <input id="SC" type="color" value="#8a3cff" style="grid-column: 2; width: 52px; height: 22px; border: 0; background: none"></label>
+  <label>Intensity <output id="vSI"></output><input id="SI" type="range" min="1" max="6" step="0.01" value="3.9"></label>
+  <label>Default height above floor (m) <output id="vSH"></output><input id="SH" type="range" min="0.5" max="12" step="0.1" value="3"></label>
+  <label>Reach (m) <output id="vSR"></output><input id="SR" type="range" min="10" max="400" step="5" value="200"></label>
+  <div class="row">
+    <label style="display:flex;gap:6px;margin:0"><input id="stations" type="checkbox" checked> location lights</label>
+    <label style="display:flex;gap:6px;margin:0"><input id="shadows" type="checkbox" checked> shadows</label>
+    <label style="display:flex;gap:6px;margin:0"><input id="constrain" type="checkbox" checked> stay on walkable area</label>
+  </div>
+  <div id="status">loading…</div>
+</div>
+
+<script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script type="importmap">
+  { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+// ---------- configuration (same overlay corners as videos.json) ----------
+const OVERLAY = {
+  image: 'ground_clean.png',   // map_overlay_neu.png with the painted red spots removed
+  config: '../videos.json',    // the video locations become fixed lights
+  topLeft: { lat: 47.3828028, lng: 8.525856 },
+  bottomRight: { lat: 47.3771241, lng: 8.5341774 },
+};
+const CENTER = { lat: 47.3797993, lng: 8.5300855 };
+
+// ---------- map ----------
+const map = new maplibregl.Map({
+  container: 'map',
+  style: 'https://tiles.openfreemap.org/styles/positron',
+  center: [CENTER.lng, CENTER.lat],
+  zoom: 17,
+  maxPitch: 0,          // the effect assumes a straight top-down view
+  pitchWithRotate: false,
+  dragPan: false,       // the mouse drives the light; Shift+drag pans (see below)
+});
+map.touchPitch.disable();
+window.__map = map;   // handy for debugging in the console
+
+// ---------- local metric frame: x east, y north, z up (metres) ----------
+const origin = maplibregl.MercatorCoordinate.fromLngLat([CENTER.lng, CENTER.lat], 0);
+const S = origin.meterInMercatorCoordinateUnits();
+function toLocal(lng, lat) {
+  const m = maplibregl.MercatorCoordinate.fromLngLat([lng, lat], 0);
+  return new THREE.Vector2((m.x - origin.x) / S, -(m.y - origin.y) / S);
+}
+const ovTL = toLocal(OVERLAY.topLeft.lng, OVERLAY.topLeft.lat);
+const ovBR = toLocal(OVERLAY.bottomRight.lng, OVERLAY.bottomRight.lat);
+
+// ---------- UI parameters ----------
+const ui = id => document.getElementById(id);
+const P = {};
+function readUI() {
+  P.mode = +ui('mode').value;
+  P.H = +ui('H').value; P.K = +ui('K').value; P.S = +ui('S').value;
+  P.LH = +ui('LH').value; P.I = Math.pow(10, +ui('I').value); P.A = +ui('A').value;
+  P.BH = +ui('BH').value; P.D = +ui('D').value; P.E = +ui('E').value;
+  P.SC = ui('SC').value; P.SI = Math.pow(10, +ui('SI').value); P.SH = +ui('SH').value; P.SR = +ui('SR').value;
+  P.stations = ui('stations').checked;
+  ui('vSI').textContent = Math.round(P.SI); ui('vSH').textContent = P.SH.toFixed(1); ui('vSR').textContent = Math.round(P.SR);
+  ui('vD').textContent = P.D.toFixed(2); ui('vE').textContent = P.E.toFixed(2);
+  P.shadows = ui('shadows').checked; P.constrain = ui('constrain').checked;
+  ui('vH').textContent = P.H; ui('vK').textContent = P.K.toFixed(2); ui('vS').textContent = P.S.toFixed(2);
+  ui('vLH').textContent = P.LH.toFixed(1); ui('vI').textContent = Math.round(P.I);
+  ui('vA').textContent = P.A.toFixed(3); ui('vBH').textContent = P.BH.toFixed(1);
+}
+readUI();
+
+// ---------- shear: shared uniforms + vertex patch ----------
+// Lighting and shadows use the true (undistorted) 3D world. Only the final
+// projection is sheared: every vertex is pushed away from the light by an amount
+// that grows with its height, then flattened onto z = 0 so the street plane stays
+// exactly registered with the map. Depth comes from the true height, so roofs
+// cover what lies behind them.
+const shearUniforms = {
+  uLight: { value: new THREE.Vector3() },
+  uH: { value: P.H }, uK: { value: P.K }, uS: { value: P.S }, uMode: { value: P.mode },
+};
+function patchShear(material) {
+  material.onBeforeCompile = shader => {
+    Object.assign(shader.uniforms, shearUniforms);
+    shader.vertexShader = shader.vertexShader
+      .replace('void main() {', `
+        uniform vec3 uLight; uniform float uH; uniform float uK; uniform float uS; uniform float uMode;
+        void main() {`)
+      .replace('#include <project_vertex>', `
+        vec4 mvPosition = modelViewMatrix * vec4( transformed, 1.0 );   // = world metres (view = identity)
+        {
+          vec3 w = mvPosition.xyz;
+          float h = max(w.z, 0.0);
+          vec2 d = w.xy - uLight.xy;
+          vec2 off;
+          if (uMode < 0.5) {
+            // virtual perspective camera hovering at height uH straight above the light
+            off = d * (h / max(uH - h, 1.0));
+          } else {
+            // uniform lean: k metres of horizontal offset per metre of height
+            float len = length(d);
+            off = len > 1e-3 ? d / len * h * uK : vec2(0.0);
+          }
+          vec4 clip = projectionMatrix * vec4(w.xy + off * uS, 0.0, 1.0);
+          clip.z = (0.5 - h * 0.002) * clip.w;   // higher = closer to the viewer
+          gl_Position = clip;
+        }`);
+  };
+  material.customProgramCacheKey = () => 'shear';
+  return material;
+}
+// Keep the canvas opaque when blending transparent pixels into MapLibre's buffer.
+function mapBlending(m) {
+  m.blending = THREE.CustomBlending;
+  m.blendSrc = THREE.SrcAlphaFactor; m.blendDst = THREE.OneMinusSrcAlphaFactor;
+  m.blendSrcAlpha = THREE.OneFactor; m.blendDstAlpha = THREE.OneMinusSrcAlphaFactor;
+  return m;
+}
+
+// ---------- scene ----------
+const scene = new THREE.Scene();
+const camera = new THREE.Camera();
+const ambient = new THREE.AmbientLight(0xffffff, P.A);
+scene.add(ambient);
+const light = new THREE.PointLight(0xfff1dc, P.I, 0, 2);
+light.castShadow = true;
+light.shadow.mapSize.set(1024, 1024);
+light.shadow.camera.near = 0.2;
+light.shadow.camera.far = 600;
+light.shadow.bias = -0.002;
+light.shadow.normalBias = 0.05;
+scene.add(light);
+
+const wallMat = patchShear(new THREE.MeshLambertMaterial({ color: 0x3e3a35, side: THREE.DoubleSide }));
+const roofMat = patchShear(new THREE.MeshLambertMaterial({ color: 0x17131f, side: THREE.DoubleSide }));
+const deckMat = patchShear(new THREE.MeshLambertMaterial({ color: 0x8a86a0, side: THREE.DoubleSide }));
+
+const loader = new THREE.TextureLoader();
+const loadTex = url => new Promise((res, rej) => loader.load(url, res, undefined, rej));
+const loadImg = url => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+
+function polygonToShape(ring) {
+  const pts = ring.map(([lng, lat]) => toLocal(lng, lat));
+  if (pts.length > 1 && pts[0].equals(pts[pts.length - 1])) pts.pop();
+  return { shape: new THREE.Shape(pts), pts };
+}
+function extrude(ring, zMin, zMax, materials) {
+  const { shape, pts } = polygonToShape(ring);
+  const geo = new THREE.ExtrudeGeometry(shape, { depth: zMax - zMin, bevelEnabled: false });
+  geo.translate(0, 0, zMin);
+  const mesh = new THREE.Mesh(geo, materials);  // group 0 = caps (roof/floor), group 1 = walls
+  mesh.castShadow = mesh.receiveShadow = true;
+  mesh.frustumCulled = false;
+  scene.add(mesh);
+  return { mesh, pts };
+}
+function pointInPolygon(p, pts) {
+  let inside = false;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const a = pts[i], b = pts[j];
+    if ((a.y > p.y) !== (b.y > p.y) && p.x < (b.x - a.x) * (p.y - a.y) / (b.y - a.y) + a.x) inside = !inside;
+  }
+  return inside;
+}
+
+let deck = null, walk = null, groundMat = null;
+
+async function buildScene() {
+  const [buildings, bridge, overlayTex, maskTex, walkImg] = await Promise.all([
+    fetch('buildings.geojson').then(r => r.json()),
+    fetch('bridge.geojson').then(r => r.json()),
+    loadTex(OVERLAY.image), loadTex('region_mask.png'), loadImg('walk_mask.png'),
+  ]);
+
+  for (const f of buildings.features) {
+    extrude(f.geometry.coordinates[0], f.properties.min_height || 0, f.properties.height, [roofMat, wallMat]);
+  }
+
+  // Negrellisteg deck: a thin slab at deck height; it shadows the tracks directly below.
+  deck = extrude(bridge.geometry.coordinates[0], 0, 1, [deckMat, deckMat]);
+  deck.setHeight = h => { deck.mesh.scale.z = 0.8; deck.mesh.position.z = h - 0.8; };
+  deck.setHeight(P.BH);
+
+  // Ground: the existing drawn overlay, lit by the walking light, faded out at the edge.
+  overlayTex.colorSpace = THREE.SRGBColorSpace;
+  overlayTex.anisotropy = 8;
+  groundMat = mapBlending(patchShear(new THREE.MeshLambertMaterial({
+    map: overlayTex, alphaMap: maskTex, transparent: true, depthWrite: false,
+  })));
+  const w = ovBR.x - ovTL.x, h = ovTL.y - ovBR.y;
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(w, h), groundMat);
+  ground.position.set(ovTL.x + w / 2, ovBR.y + h / 2, 0);
+  ground.receiveShadow = true;
+  ground.frustumCulled = false;
+  ground.renderOrder = -1;
+  scene.add(ground);
+
+  // Light position marker
+  const dot = new THREE.Mesh(new THREE.CircleGeometry(1.1, 24),
+    new THREE.MeshBasicMaterial({ color: 0xfff6e0, depthTest: false, depthWrite: false, transparent: true, toneMapped: false }));
+  dot.renderOrder = 10; dot.frustumCulled = false;
+  scene.add(dot);
+  marker = dot;
+
+  // Walkable mask (white = street/courtyard/bridge) for keeping the light out of buildings
+  const c = document.createElement('canvas');
+  c.width = walkImg.width; c.height = walkImg.height;
+  const ctx = c.getContext('2d'); ctx.drawImage(walkImg, 0, 0);
+  walk = { w: c.width, h: c.height, data: ctx.getImageData(0, 0, c.width, c.height).data };
+
+  // Video locations as fixed violet point lights (replacing the painted red spots)
+  try {
+    const cfg = await fetch(OVERLAY.config).then(r => r.json());
+    for (const a of cfg?.locations ?? []) {
+      const l = new THREE.PointLight(0xffffff, 1, 0, 2);
+      l.castShadow = true;
+      l.shadow.mapSize.set(512, 512);
+      l.shadow.camera.near = 0.2; l.shadow.camera.far = 400;
+      l.shadow.bias = -0.002; l.shadow.normalBias = 0.05;
+      l.shadow.autoUpdate = false;           // static light: render its shadow map only when something changes
+      l.userData = {
+        xy: toLocal(a.longitude, a.latitude),
+        height: Number.isFinite(a.lightHeight) ? a.lightHeight : null,   // from the editor / videos.json
+      };
+      scene.add(l);
+      stations.push(l);
+    }
+  } catch (err) { console.warn('no station lights:', err); }
+  updateStations();
+}
+let marker = null;
+const stations = [];
+
+function updateStations() {
+  const color = new THREE.Color(P.SC);
+  for (const l of stations) {
+    const { xy, height } = l.userData;
+    l.position.set(xy.x, xy.y, (onBridge(xy) ? P.BH : 0) + (height ?? P.SH));
+    l.color.copy(color);
+    l.intensity = P.SI;
+    l.decay = P.D;
+    l.distance = P.SR;                       // smooth cut-off in metres
+    l.visible = P.stations;
+    l.castShadow = P.shadows;
+    l.shadow.needsUpdate = true;
+  }
+}
+
+function isWalkable(p) {
+  if (!walk) return true;
+  const u = Math.floor((p.x - ovTL.x) / (ovBR.x - ovTL.x) * walk.w);
+  const v = Math.floor((ovTL.y - p.y) / (ovTL.y - ovBR.y) * walk.h);
+  if (u < 0 || v < 0 || u >= walk.w || v >= walk.h) return false;
+  return walk.data[(v * walk.w + u) * 4] > 127;
+}
+// nearest walkable point within ~10 m, so the light slides along facades
+function snapToWalkable(p) {
+  if (isWalkable(p)) return p;
+  const step = (ovBR.x - ovTL.x) / walk.w;
+  for (let r = 1; r <= 16; r++) {
+    let best = null, bd = Infinity;
+    for (let a = 0; a < 32; a++) {
+      const q = new THREE.Vector2(p.x + Math.cos(a / 32 * Math.PI * 2) * r * step, p.y + Math.sin(a / 32 * Math.PI * 2) * r * step);
+      if (isWalkable(q)) { const d = q.distanceToSquared(p); if (d < bd) { bd = d; best = q; } }
+    }
+    if (best) return best;
+  }
+  return null;
+}
+
+// ---------- light motion ----------
+const start = toLocal(8.5300855, 47.3797993);
+const target = new THREE.Vector3(start.x, start.y, 0);  // z = floor height (street 0, bridge deck)
+const pos = target.clone();
+let frozen = false;
+
+function onBridge(p) { return deck && pointInPolygon(p, deck.pts); }
+
+function setTargetFromLngLat(lngLat) {
+  if (frozen) return;
+  let p = toLocal(lngLat.lng, lngLat.lat);
+  if (P.constrain) { p = snapToWalkable(p); if (!p) return; }
+  target.set(p.x, p.y, onBridge(p) ? P.BH : 0);
+  map.triggerRepaint();
+}
+map.on('mousemove', e => { if (!e.originalEvent.shiftKey) setTargetFromLngLat(e.lngLat); });
+map.on('click', e => setTargetFromLngLat(e.lngLat));  // touch: tap to move
+window.addEventListener('keydown', e => { if (e.key === 'f' || e.key === 'F') frozen = !frozen; });
+// Shift + drag pans
+window.addEventListener('keydown', e => { if (e.key === 'Shift') map.dragPan.enable(); });
+window.addEventListener('keyup', e => { if (e.key === 'Shift') map.dragPan.disable(); });
+if (matchMedia('(pointer: coarse)').matches) map.dragPan.enable();
+
+document.querySelectorAll('#panel input, #panel select').forEach(el => el.addEventListener('input', () => {
+  readUI();
+  if (deck) deck.setHeight(P.BH);
+  if (onBridge(new THREE.Vector2(target.x, target.y))) target.z = P.BH;
+  updateStations();
+  map.triggerRepaint();
+}));
+
+// ---------- MapLibre custom layer sharing the WebGL context ----------
+let renderer;
+const worldToMerc = new THREE.Matrix4().makeTranslation(origin.x, origin.y, 0)
+  .scale(new THREE.Vector3(S, -S, S));
+let last = performance.now();
+
+const layer = {
+  id: 'walking-light', type: 'custom', renderingMode: '3d',
+  onAdd(m, gl) {
+    renderer = new THREE.WebGLRenderer({ canvas: m.getCanvas(), context: gl, antialias: true });
+    renderer.autoClear = false;
+    renderer.setPixelRatio(1);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;  // keeps the hot spot from blowing out
+  },
+  render(gl, args) {
+    const now = performance.now();
+    const dt = Math.min(0.1, (now - last) / 1000); last = now;
+
+    // ease towards target; vertical motion (stairs to the bridge) a bit slower
+    const kxy = 1 - Math.exp(-dt * 10), kz = 1 - Math.exp(-dt * 3);
+    pos.x += (target.x - pos.x) * kxy; pos.y += (target.y - pos.y) * kxy; pos.z += (target.z - pos.z) * kz;
+    const moving = pos.distanceTo(target) > 0.02;
+
+    light.position.set(pos.x, pos.y, pos.z + P.LH);
+    light.intensity = P.I; light.decay = P.D; ambient.intensity = P.A;
+    renderer.toneMappingExposure = P.E;
+    light.castShadow = P.shadows;
+    shearUniforms.uLight.value.copy(light.position);
+    shearUniforms.uH.value = P.H; shearUniforms.uK.value = P.K;
+    shearUniforms.uS.value = P.S; shearUniforms.uMode.value = P.mode;
+    if (marker) marker.position.set(pos.x, pos.y, 0);
+
+    const mat = args.defaultProjectionData?.mainMatrix ?? args.modelViewProjectionMatrix ?? args;
+    camera.projectionMatrix = new THREE.Matrix4().fromArray(mat).multiply(worldToMerc);
+
+    renderer.resetState();
+    renderer.setViewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+    renderer.clearDepth();
+    renderer.render(scene, camera);
+
+    ui('status').textContent =
+      `light ${pos.x.toFixed(1)}, ${pos.y.toFixed(1)} m · z ${(pos.z + P.LH).toFixed(1)} m` +
+      (target.z > 0 ? ' · on Negrellisteg' : '') + (frozen ? ' · frozen' : '');
+    if (moving) map.triggerRepaint();
+  },
+};
+
+map.on('load', async () => {
+  // the drawn overlay as today (visible outside the modelled area)
+  map.addSource('drawnMap', {
+    type: 'image', url: OVERLAY.image,
+    coordinates: [
+      [OVERLAY.topLeft.lng, OVERLAY.topLeft.lat], [OVERLAY.bottomRight.lng, OVERLAY.topLeft.lat],
+      [OVERLAY.bottomRight.lng, OVERLAY.bottomRight.lat], [OVERLAY.topLeft.lng, OVERLAY.bottomRight.lat],
+    ],
+  });
+  map.addLayer({ id: 'drawnMap', type: 'raster', source: 'drawnMap', paint: { 'raster-fade-duration': 0 } });
+  try {
+    await buildScene();
+    map.addLayer(layer);
+  } catch (err) {
+    ui('status').textContent = 'Error: ' + err.message;
+    console.error(err);
+  }
+});
+</script>
+</body>
+</html>
