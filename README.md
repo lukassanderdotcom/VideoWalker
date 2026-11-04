@@ -113,7 +113,7 @@ Each location in the `locations` array defines a video trigger zone:
 - `latitude`: Location latitude in decimal degrees
 - `longitude`: Location longitude in decimal degrees
 - `radius`: Trigger radius in meters (how close users must be)
-- `lightHeight` (optional): height in meters of the location's light above the floor in the walking-light prototype (`prototype/light.html`). On the Negrellisteg the floor is the bridge deck. Leave it out to use the prototype's default height slider.
+- `lightHeight`, `lightIntensity` (optional): this location's light in the 3D scene, see [Walking Light Scene](#walking-light-scene). Leave them out to use the scene's defaults.
 - `title`: Location name in each supported language
 - `description`: Location description in each supported language
 
@@ -346,6 +346,44 @@ You can lay your own drawn map over part of the base map. The **Overlay** tab of
 - `image`: image file next to `videos.json`. Transparent parts of a PNG show the base map.
 - `topLeft` / `bottomRight`: corners of the image on the map. Moving the corners in the editor moves and stretches the drawing, which the editor shows live.
 - `opacity`: 0 (invisible) to 1 (opaque)
+
+### Walking Light Scene
+
+Inside the drawn map, the app can show a 3D scene instead of the flat drawing: the visitor is a light walking through the buildings, so only what the light reaches is visible. The buildings lean away from the light, which makes the lit facades visible from above while the streets stay exactly on the map. On a bridge the light rises to the deck. The video locations are fixed lights; their circles are invisible outside debug mode. Far from the scene the map stays flat and the usual position marker shows the visitor; walking into the soft edge of the area, the buildings grow out of the map and the marker fades out.
+
+Edit it in the **Scene** tab of the editor: the mouse is the visitor's GPS position (with the position pin, as in the app), and every change shows right away. Each video location can have its own light height and intensity in the **Videos** tab.
+
+```json
+"scene": {
+  "buildings": "scene/buildings.geojson",
+  "bridge": "scene/bridge.geojson",
+  "regionMask": "scene/region_mask.png",
+  "walkMask": "scene/walk_mask.png",
+  "deckHeight": 4.9,
+  "shear": { "mode": "perspective", "cameraHeight": 115, "lean": 0.29, "strength": 1.02 },
+  "walker": { "height": 2.4, "intensity": 30903, "color": "#fff1dc" },
+  "locationLights": { "enabled": true, "color": "#8a3cff", "intensity": 7943, "height": 3, "reach": 200 },
+  "falloff": 1.85,
+  "exposure": 0.9,
+  "ambient": 0,
+  "shadows": true,
+  "edge": { "start": 0.05, "full": 0.6 }
+}
+```
+
+- The ground of the scene is the drawn map (`overlay.image`), placed by the overlay corners.
+- `buildings`: GeoJSON polygons with `height` (and optional `min_height`) in meters
+- `bridge`: GeoJSON polygon of a bridge deck at `deckHeight` meters; on it the floor is the deck
+- `regionMask`: greyscale image over the overlay area; white is where the scene is shown, the soft edge fades into the map
+- `walkMask`: greyscale image over the overlay area; white is where the light may walk. GPS positions are moved onto it (within about 12 m), so the light doesn't end up inside a building.
+- `shear`: how the buildings lean. `perspective`: like a camera `cameraHeight` meters above the visitor, far buildings lean more. `uniform`: `lean` meters of offset per meter of height. `strength` scales both.
+- `walker`: the visitor's light; `height` above the floor in meters
+- `locationLights`: defaults for the video location lights; `reach` in meters
+- `falloff`: how fast light fades with distance (2 is physical, lower reaches further)
+- `exposure`, `ambient`, `shadows`: brightness of the whole image, light everywhere, shadows on or off
+- `edge`: the scene grows out of the flat map in the soft edge of `regionMask`. Where the mask is below `start` the visitor sees the flat drawing and the position pin; towards `full` the darkness fades in, the buildings grow to their height, the lights come on and the pin fades out.
+
+Every key is optional; missing ones use these values. Remove the `scene` section to show the flat drawing again. The scene uses WebGL 2 and three.js (loaded from jsDelivr).
 
 ### Changing Circle Colors
 

@@ -529,6 +529,8 @@
       let videoCircles = []; // Store circles to update popups when language changes
       let userWithinLocations = new Set(); // Track which location indices user is currently within
       let map, userMarker;
+      let walkingLight = null;        // The 3D scene, when the config has one
+      const allVideoCircles = [];     // Every video location circle, to restyle them
       let watchId = null; // Store the watch ID
       let locationUpdateCount = 0; // Counter for location updates
       let hasInitiallycentered = false; // Flag to track if map has been centered on first location
@@ -746,6 +748,7 @@
             stopDebugAudio();
           }
         }
+        styleVideoCircles(); // the circles are hidden behind the scene's lights outside debug mode
         // Update popup content to show/hide play buttons based on new debug mode state
         updatePopupContent();
         menuOverlay.classList.add('hidden');
@@ -913,6 +916,30 @@
         }).addTo(map);
 
         addDrawnMapOverlay(glLayer.getMaplibreMap());
+        addWalkingLight(glLayer.getMaplibreMap());
+      }
+
+      // The 3D scene from the "scene" section of the config (see scene/walking-light.js):
+      // the visitor is a light walking through the buildings, the video locations are fixed lights
+      function addWalkingLight(glMap) {
+        if (!configData?.scene || !configData?.overlay) {
+          return;
+        }
+        glMap.on('load', () => {
+          import('./scene/walking-light.js')
+            .then(module => module.hasScene(configData) ? module.createWalkingLight(glMap, configData) : null)
+            .then(scene => {
+              walkingLight = scene;
+              if (!scene) {
+                return;
+              }
+              styleVideoCircles();
+              if (lastPosition) {
+                showUserPosition(lastPosition.latitude, lastPosition.longitude);
+              }
+            })
+            .catch(error => console.error('Walking light not available:', error));
+        });
       }
 
       // Show the custom drawn map from the config on top of the base map (see overlay-tool.html)
@@ -1002,11 +1029,8 @@
             return;
           }
           
-          if (userMarker) {
-            map.removeLayer(userMarker);
-          }
-          userMarker = L.marker([latitude, longitude]).addTo(map);
-          
+          showUserPosition(latitude, longitude);
+
           // Only center the map on the first location update with higher zoom
           if (!hasInitiallycentered) {
             map.setView([latitude, longitude], 15);
@@ -1045,6 +1069,16 @@
         }
       }
 
+      // Inside the 3D scene the walking light shows the visitor; elsewhere the usual marker does.
+      // In the scene's soft edge the scene grows out of the flat map while the marker fades out
+      function showUserPosition(latitude, longitude) {
+        const markerOpacity = walkingLight ? walkingLight.setWalker(longitude, latitude).pinOpacity : 1;
+        if (userMarker) {
+          map.removeLayer(userMarker);
+        }
+        userMarker = markerOpacity > 0 ? L.marker([latitude, longitude], { opacity: markerOpacity }).addTo(map) : null;
+      }
+
       /**                       **/
       /**    GEOLOCATION API    **/
       /**                       **/
@@ -1064,9 +1098,10 @@
           // Check if latitude, longitude, and radius are defined and valid
           if (typeof latitude === 'number' && typeof longitude === 'number' && typeof radius === 'number') {
             const circle = L.circle([latitude, longitude], {
-              color: 'red',
+              ...videoCircleStyle(),
               radius: radius
             }).addTo(map);
+            allVideoCircles.push(circle);
 
             // Add popup with title, description, and conditionally play button
             const videoTitle = typeof title === 'object' ? (title[selectedLanguage] || title.en) : title;
@@ -1098,6 +1133,18 @@
             console.error(`Invalid data for video location at index ${index}:`, video);
           }
         });
+      }
+
+      // With the 3D scene the video locations are lights: their circles stay clickable
+      // for the popups but are invisible, except in debug mode
+      function videoCircleStyle() {
+        return walkingLight && !debugMode
+          ? { color: 'red', opacity: 0, fillOpacity: 0 }
+          : { color: 'red', opacity: 1, fillOpacity: 0.2 };
+      }
+
+      function styleVideoCircles() {
+        allVideoCircles.forEach(circle => circle.setStyle(videoCircleStyle()));
       }
 
       /**                       **/
