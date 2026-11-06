@@ -233,6 +233,11 @@ export async function createWalkingLight(map, config, { resolve = path => path, 
   placeGround();
 
   // Marker dot under the walking light
+  const dotOutline = new THREE.Mesh(new THREE.RingGeometry(2.4, 2.75, 24),
+    new THREE.MeshBasicMaterial({ color: 0x000000, depthTest: false, depthWrite: false, transparent: true, toneMapped: false }));
+  dotOutline.renderOrder = 9;
+  dotOutline.frustumCulled = false;
+  scene.add(dotOutline);
   const dot = new THREE.Mesh(new THREE.CircleGeometry(2.4, 24),
     new THREE.MeshBasicMaterial({ color: 0xfff6e0, depthTest: false, depthWrite: false, transparent: true, toneMapped: false }));
   dot.renderOrder = 10;
@@ -320,6 +325,7 @@ export async function createWalkingLight(map, config, { resolve = path => path, 
       m.opacity = p;
     }
     groundMat.opacity = p;
+    dotOutline.material.opacity = p;
     dot.material.opacity = p;
     for (const l of locationLights) {
       l.position.z = l.userData.floor * p + l.userData.height;
@@ -380,7 +386,9 @@ export async function createWalkingLight(map, config, { resolve = path => path, 
       walker.position.set(pos.x, pos.y, pos.z * presence + settings.walker.height);
       walker.intensity = walkerOn ? settings.walker.intensity * presence : 0;
       dot.visible = walkerOn;
+      dotOutline.visible = walkerOn;
       dot.position.set(pos.x, pos.y, 0);
+      dotOutline.position.set(pos.x, pos.y, 0);
       shear.uLight.value.copy(walker.position);
       renderer.toneMappingExposure = settings.exposure;
 
