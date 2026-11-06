@@ -20,7 +20,7 @@ export const DEFAULTS = {
   deckHeight: 4.9,
   shear: { mode: 'perspective', cameraHeight: 115, lean: 0.29, strength: 1.02 },
   walker: { height: 2.4, intensity: 30903, color: '#fff1dc' },
-  locationLights: { enabled: true, color: '#8a3cff', intensity: 7943, height: 3, reach: 200 },
+  locationLights: { enabled: true, color: '#f00', intensity: 7943, height: 3, reach: 200 },
   falloff: 1.85,
   exposure: 0.9,
   ambient: 0,

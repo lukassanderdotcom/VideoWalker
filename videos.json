@@ -170,7 +170,7 @@
     },
     "locationLights": {
       "enabled": true,
-      "color": "#8a3cff",
+      "color": "#f00",
       "intensity": 7943,
       "height": 3,
       "reach": 200
