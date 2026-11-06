@@ -132,9 +132,9 @@ export async function createWalkingLight(map, config, { resolve = path => path, 
   walker.shadow.normalBias = 0.05;
   scene.add(walker);
 
-  // Building materials fade with presence (transparent only while fading, see setPresence)
+  // Building materials stay slightly transparent so the map remains visible through them.
   const wallMat = mapBlending(patchShear(new THREE.MeshLambertMaterial({ color: 0x4a4a4a, side: THREE.DoubleSide })));
-  const roofMat = mapBlending(patchShear(new THREE.MeshLambertMaterial({ color: 0x505050, side: THREE.DoubleSide })));
+  const roofMat = mapBlending(patchShear(new THREE.MeshLambertMaterial({ color: 0x787878, side: THREE.DoubleSide })));
   const deckMat = mapBlending(patchShear(new THREE.MeshLambertMaterial({ color: 0x8a86a0, side: THREE.DoubleSide })));
   const solidMats = [wallMat, roofMat, deckMat];
 
@@ -338,10 +338,9 @@ export async function createWalkingLight(map, config, { resolve = path => path, 
     const height = Math.max(p, 0.001);
     for (const mesh of buildingMeshes) mesh.scale.z = height;
     if (deck) { deck.mesh.scale.z = 0.8 * height; deck.mesh.position.z = (settings.deckHeight - 0.8) * p; }
-    const fading = p < 0.995;   // transparent only while fading: opaque buildings sort correctly
     for (const m of solidMats) {
-      if (m.transparent !== fading) { m.transparent = fading; m.needsUpdate = true; }
-      m.opacity = p;
+      if (!m.transparent) { m.transparent = true; m.needsUpdate = true; }
+      m.opacity = p * 0.5;
     }
     groundMat.opacity = p;
     dotOutline.material.opacity = p;
