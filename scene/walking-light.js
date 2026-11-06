@@ -233,7 +233,7 @@ export async function createWalkingLight(map, config, { resolve = path => path, 
   placeGround();
 
   // Marker dot under the walking light
-  const dot = new THREE.Mesh(new THREE.CircleGeometry(1.1, 24),
+  const dot = new THREE.Mesh(new THREE.CircleGeometry(2.4, 24),
     new THREE.MeshBasicMaterial({ color: 0xfff6e0, depthTest: false, depthWrite: false, transparent: true, toneMapped: false }));
   dot.renderOrder = 10;
   dot.frustumCulled = false;
