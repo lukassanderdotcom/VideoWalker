@@ -272,6 +272,7 @@ export async function createWalkingLight(map, config, { resolve = path => path, 
 
   // ---------- video location lights ----------
   const locationLights = [];
+  const locationRings = [];
   function syncLocationLights() {
     const ll = settings.locationLights;
     const locations = (config.locations || []).filter(l => isNumber(l.latitude) && isNumber(l.longitude));
@@ -283,16 +284,30 @@ export async function createWalkingLight(map, config, { resolve = path => path, 
       l.shadow.autoUpdate = false;   // static: shadow map only re-rendered when something changes
       scene.add(l);
       locationLights.push(l);
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(9.5, 10, 48),
+        new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, depthWrite: false, transparent: true, toneMapped: false })
+      );
+      ring.renderOrder = 8;
+      ring.frustumCulled = false;
+      scene.add(ring);
+      locationRings.push(ring);
     }
     while (locationLights.length > locations.length) {
       const l = locationLights.pop();
       scene.remove(l);
       l.dispose();
+      const ring = locationRings.pop();
+      scene.remove(ring);
+      ring.geometry.dispose();
+      ring.material.dispose();
     }
     const color = new THREE.Color(ll.color);
     locations.forEach((loc, i) => {
       const l = locationLights[i];
+      const ring = locationRings[i];
       const p = toLocal(loc.longitude, loc.latitude);
+      const radius = isNumber(loc.radius) && loc.radius > 0 ? loc.radius : 10;
       l.userData = {
         floor: floorAt(p),
         height: isNumber(loc.lightHeight) ? loc.lightHeight : ll.height,
@@ -304,6 +319,10 @@ export async function createWalkingLight(map, config, { resolve = path => path, 
       l.distance = ll.reach;
       l.visible = ll.enabled !== false;
       l.castShadow = settings.shadows !== false;
+      ring.position.set(p.x, p.y, 0);
+      ring.scale.setScalar(radius / 10);
+      ring.material.color.copy(color);
+      ring.visible = ll.enabled !== false;
     });
   }
 
@@ -327,6 +346,7 @@ export async function createWalkingLight(map, config, { resolve = path => path, 
     groundMat.opacity = p;
     dotOutline.material.opacity = p;
     dot.material.opacity = p;
+    locationRings.forEach(ring => { ring.material.opacity = 1; });
     for (const l of locationLights) {
       l.position.z = l.userData.floor * p + l.userData.height;
       l.intensity = l.userData.intensity * p;
@@ -381,7 +401,7 @@ export async function createWalkingLight(map, config, { resolve = path => path, 
       const moving = pos.distanceTo(target) > 0.02 || presence !== presenceTarget;
       if (moving) map.triggerRepaint();
       applyPresence();
-      if (presence < 0.002) return;   // flat map: the plain drawing shows, nothing to draw
+      if (presence < 0.002 && locationRings.length === 0) return;   // flat map: only fixed location rings remain visible
 
       walker.position.set(pos.x, pos.y, pos.z * presence + settings.walker.height);
       walker.intensity = walkerOn ? settings.walker.intensity * presence : 0;
@@ -454,6 +474,7 @@ export async function createWalkingLight(map, config, { resolve = path => path, 
       scene.traverse(o => { o.geometry?.dispose(); });
       groundTex.dispose(); maskTex.dispose();
       locationLights.forEach(l => l.dispose()); walker.dispose();
+      locationRings.forEach(ring => ring.material.dispose());
     },
   };
 }
