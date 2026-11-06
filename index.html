@@ -1139,8 +1139,8 @@
       // for the popups but are invisible, except in debug mode
       function videoCircleStyle() {
         return walkingLight && !debugMode
-          ? { color: 'red', opacity: 0, fillOpacity: 0 }
-          : { color: 'red', opacity: 1, fillOpacity: 0.2 };
+          ? { color: '#f00', weight: 4, opacity: 0, fillOpacity: 0 }
+          : { color: '#f00', weight: 4, opacity: 1, fillOpacity: 0.2 };
       }
 
       function styleVideoCircles() {
@@ -1500,7 +1500,7 @@
             // User is outside this perimeter
             // Change circle color back to red
             if (circleData && circleData.circle) {
-              circleData.circle.setStyle({ color: 'red' });
+              circleData.circle.setStyle({ color: '#f00' });
             }
           }
         });
