@@ -343,7 +343,7 @@
       const MAX_ZOOM = 24;
       const DEFAULT_LANGUAGES = ['en', 'de']; // The languages index.html has translations for
       const DEFAULT_FADE_SECONDS = 3;
-      const COLORS = { locations: '#d00', audio: '#1565c0', area: '#e65100', start: '#333' };
+      const COLORS = { locations: '#f00', audio: '#1565c0', area: '#e65100', start: '#333' };
 
       const sourceInfo = document.getElementById('sourceInfo');
       const openFolderButton = document.getElementById('openFolder');
@@ -412,7 +412,7 @@
         map.addLayer({ id: 'locations-fill', type: 'fill', source: 'locations', paint: { 'fill-color': COLORS.locations, 'fill-opacity': 0.15 } });
         map.addLayer({
           id: 'locations-line', type: 'line', source: 'locations',
-          paint: { 'line-color': COLORS.locations, 'line-width': ['case', ['get', 'selected'], 4, 2] }
+          paint: { 'line-color': COLORS.locations, 'line-width': ['case', ['get', 'selected'], 5, 3] }
         });
         map.addLayer({ id: 'area-line', type: 'line', source: 'template-area', paint: { 'line-color': COLORS.area, 'line-width': 2 } });
         mapReady = true;
