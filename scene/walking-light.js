@@ -285,7 +285,7 @@ export async function createWalkingLight(map, config, { resolve = path => path, 
       scene.add(l);
       locationLights.push(l);
       const ring = new THREE.Mesh(
-        new THREE.RingGeometry(9.5, 10, 48),
+        new THREE.RingGeometry(9, 10, 48),
         new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, depthWrite: false, transparent: true, toneMapped: false })
       );
       ring.renderOrder = 8;
