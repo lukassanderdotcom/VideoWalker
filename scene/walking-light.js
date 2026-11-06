@@ -134,7 +134,7 @@ export async function createWalkingLight(map, config, { resolve = path => path, 
 
   // Building materials fade with presence (transparent only while fading, see setPresence)
   const wallMat = mapBlending(patchShear(new THREE.MeshLambertMaterial({ color: 0x4a4a4a, side: THREE.DoubleSide })));
-  const roofMat = mapBlending(patchShear(new THREE.MeshLambertMaterial({ color: 0x383838, side: THREE.DoubleSide })));
+  const roofMat = mapBlending(patchShear(new THREE.MeshLambertMaterial({ color: 0x505050, side: THREE.DoubleSide })));
   const deckMat = mapBlending(patchShear(new THREE.MeshLambertMaterial({ color: 0x8a86a0, side: THREE.DoubleSide })));
   const solidMats = [wallMat, roofMat, deckMat];
 
