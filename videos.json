@@ -122,9 +122,9 @@
       {
         "name": "Audio Area 3",
         "url": "audio/station3.mp3",
-        "latitude": 47.3796388,
-        "longitude": 8.5309735,
-        "radius": 37,
+        "latitude": 47.3796174,
+        "longitude": 8.5309165,
+        "radius": 50,
         "volume": 1,
         "loop": true,
         "edgeVolume": 0.2
@@ -142,9 +142,9 @@
       {
         "name": "Audio Area 5",
         "url": "audio/station5.mp3",
-        "latitude": 47.3793223,
-        "longitude": 8.5329648,
-        "radius": 40,
+        "latitude": 47.3793341,
+        "longitude": 8.5328858,
+        "radius": 45,
         "volume": 1,
         "loop": true,
         "edgeVolume": 0.2
@@ -156,27 +156,27 @@
     "bridge": "scene/bridge.geojson",
     "regionMask": "scene/region_mask.png",
     "walkMask": "scene/walk_mask.png",
-    "deckHeight": 4.9,
+    "deckHeight": 6,
     "shear": {
       "mode": "perspective",
-      "cameraHeight": 115,
-      "lean": 0.29,
-      "strength": 1.02
+      "cameraHeight": 100,
+      "lean": 1,
+      "strength": 1
     },
     "walker": {
-      "height": 2.4,
-      "intensity": 30903,
+      "height": 2,
+      "intensity": 26303,
       "color": "#fff1dc"
     },
     "locationLights": {
       "enabled": true,
       "color": "#f00",
-      "intensity": 7943,
+      "intensity": 8318,
       "height": 3,
       "reach": 200
     },
-    "falloff": 1.85,
-    "exposure": 0.9,
+    "falloff": 1.8,
+    "exposure": 2,
     "ambient": 0,
     "shadows": true
   }
