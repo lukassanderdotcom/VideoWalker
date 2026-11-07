@@ -112,8 +112,8 @@
       {
         "name": "Audio Area 2",
         "url": "audio/station2.mp3",
-        "latitude": 47.3800088,
-        "longitude": 8.5295509,
+        "latitude": 47.3799967,
+        "longitude": 8.5296389,
         "radius": 25,
         "volume": 1,
         "loop": true,
@@ -142,9 +142,9 @@
       {
         "name": "Audio Area 5",
         "url": "audio/station5.mp3",
-        "latitude": 47.3793341,
-        "longitude": 8.5328858,
-        "radius": 45,
+        "latitude": 47.3793371,
+        "longitude": 8.532886,
+        "radius": 50,
         "volume": 1,
         "loop": true,
         "edgeVolume": 0.2
