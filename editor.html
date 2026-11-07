@@ -253,6 +253,12 @@
         #panel { width: 100%; height: 60vh; border-right: none; border-bottom: 1px solid #ccc; }
       }
 
+      #panel .field input[type="color"] {
+        width: 64px;
+        height: 32px;
+        padding: 2px;
+      }
+
       .hidden { display: none !important; }
     </style>
   </head>
@@ -268,6 +274,7 @@
           <button data-tab="locations" class="active">Videos</button>
           <button data-tab="audio">Audio</button>
           <button data-tab="overlay">Overlay</button>
+          <button data-tab="scene">Scene</button>
         </nav>
       </div>
 
@@ -314,6 +321,11 @@
         <img id="preview" class="hidden" alt="Rendered template" />
       </section>
 
+      <section id="tab-scene" class="tab hidden">
+        <p class="hint">The 3D scene of the app: the visitor is a light walking through the buildings, the video locations are fixed lights. Move the mouse over the map to walk; changes show right away.</p>
+        <div id="sceneSettings"></div>
+      </section>
+
       <div id="panelFooter">
         <button id="save" class="action">Save to project folder</button>
         <button id="download" class="action">Download videos.json</button>
@@ -331,7 +343,7 @@
       const MAX_ZOOM = 24;
       const DEFAULT_LANGUAGES = ['en', 'de']; // The languages index.html has translations for
       const DEFAULT_FADE_SECONDS = 3;
-      const COLORS = { locations: '#d00', audio: '#1565c0', area: '#e65100', start: '#333' };
+      const COLORS = { locations: '#f00', audio: '#1565c0', area: '#e65100', start: '#333' };
 
       const sourceInfo = document.getElementById('sourceInfo');
       const openFolderButton = document.getElementById('openFolder');
@@ -367,6 +379,11 @@
       let markers = [];               // Draggable markers of the active tab
       let positionInputs = {};        // Position input of the open card per tab, kept in sync while dragging
       let overlayRequest = 0;
+      let sceneModule = null;         // scene/walking-light.js, shared with index.html
+      let walkingLight = null;        // The scene on the editor map
+      let sceneKey = '';              // Files the current scene was built from
+      let sceneRequest = 0;
+      let showScene = true;           // Editor-only: draw the scene on the map
 
       // Writing straight into a folder only works in Chrome and Edge
       const canWriteFolders = 'showDirectoryPicker' in window;
@@ -395,7 +412,7 @@
         map.addLayer({ id: 'locations-fill', type: 'fill', source: 'locations', paint: { 'fill-color': COLORS.locations, 'fill-opacity': 0.15 } });
         map.addLayer({
           id: 'locations-line', type: 'line', source: 'locations',
-          paint: { 'line-color': COLORS.locations, 'line-width': ['case', ['get', 'selected'], 4, 2] }
+          paint: { 'line-color': COLORS.locations, 'line-width': ['case', ['get', 'selected'], 5, 3] }
         });
         map.addLayer({ id: 'area-line', type: 'line', source: 'template-area', paint: { 'line-color': COLORS.area, 'line-width': 2 } });
         mapReady = true;
@@ -403,7 +420,41 @@
         refreshTemplateArea();
         refreshOverlayImage();
         refreshAreaVisibility();
+        rebuildScene();
       });
+
+      import('./scene/walking-light.js').then(module => {
+        sceneModule = module;
+        renderScene();
+        rebuildScene();
+      }).catch(error => console.error('Scene module not loaded:', error));
+
+      // Every edit in the panel goes straight into the scene preview (the field handlers run first)
+      for (const type of ['input', 'change']) {
+        document.getElementById('panel').addEventListener(type, () => refreshScene());
+      }
+
+      // In the Scene tab the mouse is the visitor's GPS position, as in the app: the light walks
+      // through the streets, and the position pin fades out while the scene grows in the soft edge
+      let simulatedPin = null;
+      map.on('mousemove', event => {
+        if (activeTab !== 'scene' || !walkingLight) {
+          return;
+        }
+        const { pinOpacity } = walkingLight.setWalker(event.lngLat.lng, event.lngLat.lat);
+        if (!simulatedPin) {
+          simulatedPin = new maplibregl.Marker({ color: '#2a81cb' }); // like Leaflet's default pin in the app
+          simulatedPin.getElement().style.pointerEvents = 'none';   // the mouse must keep reaching the map
+        }
+        simulatedPin.setLngLat(event.lngLat).addTo(map);
+        simulatedPin.setOpacity(String(pinOpacity)); // MapLibre markers manage their own opacity
+      });
+
+      // Outside the Scene tab the editor shows the whole scene, without visitor
+      function endSimulation() {
+        simulatedPin?.remove();
+        walkingLight?.showWithoutWalker(1);
+      }
 
       // Click a circle to edit it; the topmost circle wins
       map.on('click', event => {
@@ -532,10 +583,12 @@
         renderList('locations');
         renderList('audio');
         renderOverlayCurrent();
+        renderScene();
         refreshCircles();
         refreshMarkers();
         refreshTemplateArea();
         refreshOverlayImage();
+        rebuildScene(true);
         fitToContent();
       }
 
@@ -735,6 +788,9 @@
         });
         refreshMarkers();
         refreshAreaVisibility();
+        if (tab !== 'scene') {
+          endSimulation();
+        }
       }
 
       function renderGeneral() {
@@ -840,6 +896,11 @@
           location.radius = value;
           refreshCircles();
         }, { min: 1, step: 1 });
+        const lightDefaults = sceneModule ? sceneModule.sceneSettings(config).locationLights : null;
+        optionalNumberField(body, 'Light height above floor (m)', location, 'lightHeight',
+          { min: 0, step: 0.1, placeholder: lightDefaults ? `empty = default (${lightDefaults.height} m)` : 'empty = default' });
+        optionalNumberField(body, 'Light intensity', location, 'lightIntensity',
+          { min: 0, step: 100, placeholder: lightDefaults ? `empty = default (${lightDefaults.intensity})` : 'empty = default' });
 
         languages.forEach(lang => {
           textField(body, `Title (${lang})`, localizedText(location.title, lang), value => {
@@ -1031,6 +1092,131 @@
         return item.name || baseName(item.url || '') || `Audio area ${index + 1}`;
       }
 
+      /***************************/
+      /**                       **/
+      /**    SCENE              **/
+      /**                       **/
+
+      function renderScene() {
+        const tab = document.getElementById('sceneSettings');
+        tab.replaceChildren();
+        if (!sceneModule) {
+          hint(tab, 'Loading the scene…');
+          return;
+        }
+        if (!config.scene) {
+          hint(tab, 'This videos.json has no 3D scene. The scene needs the drawn map (Overlay tab) and the building files in the project\'s scene folder.');
+          actionButton(tab, 'Add the 3D scene', () => {
+            config.scene = structuredClone(sceneModule.DEFAULTS);
+            markDirty();
+            renderScene();
+            rebuildScene(true);
+          });
+          return;
+        }
+        if (!hasOverlayCorners(config.overlay) || !config.overlay.image) {
+          hint(tab, 'The scene uses the drawn map as its ground: add one in the Overlay tab.').classList.add('warning');
+        }
+        const s = sceneModule.sceneSettings(config);
+        const set = (key, value) => { config.scene[key] = value; };
+        const setIn = (group, key, value) => { config.scene[group] = { ...(config.scene[group] || {}), [key]: value }; };
+
+        checkboxField(tab, 'Show the scene in the editor', showScene, checked => {
+          showScene = checked;
+          rebuildScene(true);
+        }, { saved: false });
+
+        heading(tab, 'Soft edge');
+        hint(tab, 'Values of the area mask (0 = black, 1 = white). Below "start" the visitor sees the flat map with the position pin; towards "full" the buildings grow, the lights come on and the pin fades out.');
+        sliderField(tab, 'Scene starts at', s.edge.start, v => setIn('edge', 'start', v), { min: 0, max: 1, step: 0.01 });
+        sliderField(tab, 'Full scene from', s.edge.full, v => setIn('edge', 'full', v), { min: 0, max: 1, step: 0.01 });
+
+        heading(tab, 'Walking light (the visitor)');
+        sliderField(tab, 'Height above floor (m)', s.walker.height, v => setIn('walker', 'height', v), { min: 0.5, max: 8, step: 0.1 });
+        sliderField(tab, 'Intensity', s.walker.intensity, v => setIn('walker', 'intensity', v), { min: 10, max: 1e6, log: true });
+        colorField(tab, 'Colour', s.walker.color, v => setIn('walker', 'color', v));
+
+        heading(tab, 'Video location lights');
+        hint(tab, 'Defaults for all video locations. Each location can have its own height and intensity in the Videos tab.');
+        checkboxField(tab, 'Light the video locations', s.locationLights.enabled !== false, checked => setIn('locationLights', 'enabled', checked));
+        colorField(tab, 'Colour', s.locationLights.color, v => setIn('locationLights', 'color', v));
+        sliderField(tab, 'Intensity', s.locationLights.intensity, v => setIn('locationLights', 'intensity', v), { min: 10, max: 1e6, log: true });
+        sliderField(tab, 'Height above floor (m)', s.locationLights.height, v => setIn('locationLights', 'height', v), { min: 0.5, max: 12, step: 0.1 });
+        sliderField(tab, 'Reach (m)', s.locationLights.reach, v => setIn('locationLights', 'reach', v), { min: 10, max: 400, step: 5 });
+
+        heading(tab, 'Buildings');
+        selectField(tab, 'Facade lean', s.shear.mode, [['perspective', 'Perspective (far buildings lean more)'], ['uniform', 'Uniform lean']],
+          v => setIn('shear', 'mode', v));
+        sliderField(tab, 'Virtual camera height (m, perspective)', s.shear.cameraHeight, v => setIn('shear', 'cameraHeight', v), { min: 60, max: 800, step: 5 });
+        sliderField(tab, 'Lean per metre of height (uniform)', s.shear.lean, v => setIn('shear', 'lean', v), { min: 0, max: 1.5, step: 0.01 });
+        sliderField(tab, 'Lean strength', s.shear.strength, v => setIn('shear', 'strength', v), { min: 0, max: 1.5, step: 0.01 });
+        sliderField(tab, 'Bridge deck height (m)', s.deckHeight, v => set('deckHeight', v), { min: 3, max: 14, step: 0.1 });
+
+        heading(tab, 'Light and image');
+        sliderField(tab, 'Falloff (2 = physical)', s.falloff, v => set('falloff', v), { min: 0, max: 2, step: 0.05 });
+        sliderField(tab, 'Exposure', s.exposure, v => set('exposure', v), { min: 0.1, max: 4, step: 0.05 });
+        sliderField(tab, 'Ambient light', s.ambient, v => set('ambient', v), { min: 0, max: 0.3, step: 0.005 });
+        checkboxField(tab, 'Shadows', s.shadows !== false, checked => set('shadows', checked));
+
+        heading(tab, 'Files');
+        hint(tab, 'Paths in the project. Changing them reloads the scene.');
+        for (const [key, label] of [['buildings', 'Buildings (GeoJSON)'], ['bridge', 'Bridge deck (GeoJSON)'], ['regionMask', 'Area mask (PNG)'], ['walkMask', 'Walkable mask (PNG)']]) {
+          const input = textField(tab, label, s[key], value => set(key, value.trim()));
+          input.addEventListener('change', () => rebuildScene());
+        }
+
+        const remove = actionButton(tab, 'Remove the 3D scene', () => {
+          if (!confirm('Remove the 3D scene from videos.json? Its files stay in the project folder.')) {
+            return;
+          }
+          delete config.scene;
+          markDirty();
+          renderScene();
+          rebuildScene(true);
+        });
+        remove.classList.add('danger');
+      }
+
+      // (Re)create the scene when its files change; plain setting changes only need refreshScene
+      async function rebuildScene(force = false) {
+        if (!mapReady || !sceneModule) {
+          return;
+        }
+        const wanted = showScene && sceneModule.hasScene(config);
+        const s = wanted ? sceneModule.sceneSettings(config) : null;
+        const key = wanted ? JSON.stringify([config.overlay.image, s.buildings, s.bridge, s.regionMask, s.walkMask]) : '';
+        if (!force && key === sceneKey) {
+          return;
+        }
+        sceneKey = key;
+        const request = ++sceneRequest;
+        walkingLight?.remove();
+        walkingLight = null;
+        if (!wanted) {
+          return;
+        }
+        try {
+          const created = await sceneModule.createWalkingLight(map, config, { resolve: resolveUrl, beforeId: 'audio-fill', initialPresence: 1 });
+          if (request !== sceneRequest) {
+            created.remove(); // a newer rebuild has started meanwhile
+            return;
+          }
+          walkingLight = created;
+        } catch (error) {
+          console.error(error);
+          showStatus('The scene could not be loaded: ' + error.message, true);
+        }
+      }
+
+      function refreshScene() {
+        walkingLight?.update(config);
+      }
+
+      /**                       **/
+      /**    SCENE              **/
+      /**                       **/
+      /***************************/
+
       /**                       **/
       /**    PANELS             **/
       /**                       **/
@@ -1088,6 +1274,27 @@
         return input;
       }
 
+      // Number that may be left empty: empty removes the key, so the app's default applies
+      function optionalNumberField(parent, label, item, key, { min, max, step, placeholder = '' } = {}) {
+        const input = textField(parent, label, item[key], () => {}, { placeholder });
+        input.type = 'number';
+        Object.assign(input, { min: min ?? '', max: max ?? '', step: step ?? 'any' });
+        input.addEventListener('input', () => {
+          if (input.value === '') {
+            input.classList.remove('invalid');
+            delete item[key];
+            return;
+          }
+          const number = Number(input.value);
+          const valid = Number.isFinite(number) && (min === undefined || number >= min) && (max === undefined || number <= max);
+          input.classList.toggle('invalid', !valid);
+          if (valid) {
+            item[key] = number;
+          }
+        });
+        return input;
+      }
+
       // "lat, lng" in one field, the format Google Maps copies; item gets latitude and longitude
       function positionField(parent, label, item, onMove) {
         const wrapper = document.createElement('label');
@@ -1133,6 +1340,63 @@
         wrapper.append(text, input);
         parent.append(wrapper);
         return input;
+      }
+
+      // Slider with its value shown in the label; log: the slider moves in powers of ten
+      function sliderField(parent, label, value, onInput, { min, max, step = 'any', log = false } = {}) {
+        const wrapper = document.createElement('label');
+        wrapper.className = 'field';
+        const text = document.createElement('span');
+        const input = document.createElement('input');
+        input.type = 'range';
+        const toSlider = v => (log ? Math.log10(v) : v);
+        const fromSlider = v => (log ? Math.round(10 ** v) : v);
+        Object.assign(input, { min: toSlider(min), max: toSlider(max), step: log ? 0.01 : step });
+        input.value = toSlider(value);
+        const show = v => { text.textContent = `${label}: ${log ? Math.round(v) : +Number(v).toFixed(3)}`; };
+        input.addEventListener('input', () => {
+          const v = fromSlider(Number(input.value));
+          onInput(v);
+          show(v);
+          markDirty();
+        });
+        show(value);
+        wrapper.append(text, input);
+        parent.append(wrapper);
+        return input;
+      }
+
+      function colorField(parent, label, value, onInput) {
+        const wrapper = document.createElement('label');
+        wrapper.className = 'field';
+        wrapper.append(label);
+        const input = document.createElement('input');
+        input.type = 'color';
+        input.value = value;
+        input.addEventListener('input', () => {
+          onInput(input.value);
+          markDirty();
+        });
+        wrapper.append(input);
+        parent.append(wrapper);
+        return input;
+      }
+
+      function selectField(parent, label, value, options, onChange) {
+        const wrapper = document.createElement('label');
+        wrapper.className = 'field';
+        wrapper.append(label);
+        const select = document.createElement('select');
+        for (const [optionValue, optionLabel] of options) {
+          select.append(new Option(optionLabel, optionValue, false, optionValue === value));
+        }
+        select.addEventListener('change', () => {
+          onChange(select.value);
+          markDirty();
+        });
+        wrapper.append(select);
+        parent.append(wrapper);
+        return select;
       }
 
       function checkboxField(parent, label, checked, onChange, { saved = true } = {}) {
@@ -1216,6 +1480,7 @@
         }
         map.getSource('locations').setData(circlesGeoJSON(config.locations, selected.locations));
         map.getSource('audio').setData(circlesGeoJSON(audioAreas(), selected.audio));
+        refreshScene(); // video locations are lights in the scene
       }
 
       // Draggable markers for the entries of the active tab
@@ -1326,7 +1591,8 @@
           type: 'raster',
           source: 'overlay-image',
           paint: { 'raster-opacity': overlay.opacity ?? 1, 'raster-fade-duration': 0 }
-        }, 'audio-fill');
+        }, map.getLayer('walking-light') ? 'walking-light' : 'audio-fill'); // under the scene
+        rebuildScene(); // the drawing is the scene's ground
       }
 
       function fitToContent() {

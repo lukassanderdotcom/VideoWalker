@@ -27,8 +27,8 @@
     },
     {
       "videoUrl": "https://vimeo.com/1237998591?fl=tl&fe=ec&share=copy",
-      "latitude": 47.3799707,
-      "longitude": 8.5296424,
+      "latitude": 47.3800211,
+      "longitude": 8.5295283,
       "radius": 10,
       "title": {
         "en": "Location 2",
@@ -37,7 +37,9 @@
       "description": {
         "en": "click to play when on location",
         "de": "klicken zum Abspielen sobald vor Ort"
-      }
+      },
+      "lightHeight": 10,
+      "lightIntensity": 10000
     },
     {
       "videoUrl": "https://vimeo.com/1237998590?fl=tl&fe=ec&share=copy",
@@ -83,7 +85,7 @@
     }
   ],
   "overlay": {
-    "image": "map_overlay_neu.png",
+    "image": "map_overlay_clean.png",
     "topLeft": {
       "latitude": 47.3828028,
       "longitude": 8.525856
@@ -110,8 +112,8 @@
       {
         "name": "Audio Area 2",
         "url": "audio/station2.mp3",
-        "latitude": 47.3799718,
-        "longitude": 8.5296798,
+        "latitude": 47.3800088,
+        "longitude": 8.5295509,
         "radius": 25,
         "volume": 1,
         "loop": true,
@@ -148,5 +150,34 @@
         "edgeVolume": 0.2
       }
     ]
+  },
+  "scene": {
+    "buildings": "scene/buildings.geojson",
+    "bridge": "scene/bridge.geojson",
+    "regionMask": "scene/region_mask.png",
+    "walkMask": "scene/walk_mask.png",
+    "deckHeight": 4.9,
+    "shear": {
+      "mode": "perspective",
+      "cameraHeight": 115,
+      "lean": 0.29,
+      "strength": 1.02
+    },
+    "walker": {
+      "height": 2.4,
+      "intensity": 30903,
+      "color": "#fff1dc"
+    },
+    "locationLights": {
+      "enabled": true,
+      "color": "#f00",
+      "intensity": 7943,
+      "height": 3,
+      "reach": 200
+    },
+    "falloff": 1.85,
+    "exposure": 0.9,
+    "ambient": 0,
+    "shadows": true
   }
 }
