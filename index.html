@@ -1029,22 +1029,8 @@
             return;
           }
           
-<<<<<<< HEAD
           showUserPosition(latitude, longitude);
 
-=======
-          if (userMarker) {
-            map.removeLayer(userMarker);
-          }
-          userMarker = L.circleMarker([latitude, longitude], {
-            radius: 20,
-            color: '#2563eb',
-            weight: 3,
-            fillColor: '#ffffff',
-            fillOpacity: 1
-          }).addTo(map);
-          
->>>>>>> afc41c9 (user marker)
           // Only center the map on the first location update with higher zoom
           if (!hasInitiallycentered) {
             map.setView([latitude, longitude], 15);
@@ -1090,7 +1076,14 @@
         if (userMarker) {
           map.removeLayer(userMarker);
         }
-        userMarker = markerOpacity > 0 ? L.marker([latitude, longitude], { opacity: markerOpacity }).addTo(map) : null;
+        userMarker = markerOpacity > 0 ? L.circleMarker([latitude, longitude], {
+          radius: 20,
+          color: '#2563eb',
+          weight: 3,
+          opacity: markerOpacity,
+          fillColor: '#ffffff',
+          fillOpacity: markerOpacity
+        }).addTo(map) : null;
       }
 
       /**                       **/
