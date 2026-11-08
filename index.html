@@ -1073,7 +1073,7 @@
       function animateUserMarker(timestamp) {
         if (userMarker && map.hasLayer(userMarker)) {
           const pulse = (Math.sin(timestamp / 1000 * Math.PI * 0.8) + 1) / 2;
-          userMarker.setStyle({ weight: 6 + pulse * 3 });
+          userMarker.setStyle({ weight: 5 + pulse * 2 });
         }
         userMarkerPulseFrame = requestAnimationFrame(animateUserMarker);
       }
@@ -1088,7 +1088,7 @@
         userMarker = markerOpacity > 0 ? L.circleMarker([latitude, longitude], {
           radius: 10,
           color: '#2563eb',
-          weight: 6,
+          weight: 5,
           opacity: markerOpacity,
           fillColor: '#ffffff',
           fillOpacity: markerOpacity
