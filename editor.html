@@ -264,8 +264,8 @@
       }
 
       @keyframes simulated-user-marker-pulse {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.25); }
-        50% { box-shadow: 0 0 0 5px rgba(37, 99, 235, 0); }
+        0%, 100% { border-width: 4px; }
+        50% { border-width: 6px; }
       }
 
       .hidden { display: none !important; }
@@ -454,7 +454,7 @@
         markerElement.style.width = '20px';
         markerElement.style.height = '20px';
         markerElement.style.boxSizing = 'border-box';
-        markerElement.style.border = '6px solid #2563eb';
+        markerElement.style.border = '5px solid #2563eb';
         markerElement.style.borderRadius = '50%';
         markerElement.style.backgroundColor = '#ffffff';
         markerElement.className = 'simulated-user-marker';

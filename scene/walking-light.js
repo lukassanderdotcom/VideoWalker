@@ -234,8 +234,9 @@ export async function createWalkingLight(map, config, { resolve = path => path, 
 
   // Marker dot under the walking light
   const userMarkerRadius = 4.8;
+  const userMarkerOutlineRadius = 0.9;
   const pulseClock = new THREE.Clock();
-  const dotOutline = new THREE.Mesh(new THREE.RingGeometry(userMarkerRadius, userMarkerRadius + 1.4, 24),
+  const dotOutline = new THREE.Mesh(new THREE.RingGeometry(userMarkerRadius - userMarkerOutlineRadius, userMarkerRadius + userMarkerOutlineRadius, 24),
     new THREE.MeshBasicMaterial({ color: 0x2563eb, depthTest: false, depthWrite: false, transparent: true, toneMapped: false }));
   dotOutline.renderOrder = 9;
   dotOutline.frustumCulled = false;
@@ -408,8 +409,8 @@ export async function createWalkingLight(map, config, { resolve = path => path, 
       walker.intensity = walkerOn ? settings.walker.intensity * presence : 0;
       dot.visible = walkerOn;
       dotOutline.visible = walkerOn;
-      const pulse = 1 + Math.sin(pulseClock.getElapsedTime() * Math.PI * 0.8) * 0.12;
-      dotOutline.scale.setScalar(pulse);
+      const pulse = Math.sin(pulseClock.getElapsedTime() * Math.PI * 0.8);
+      dotOutline.scale.setScalar(1 + pulse * 0.1);
       dot.position.set(pos.x, pos.y, 0);
       dotOutline.position.set(pos.x, pos.y, 0);
       shear.uLight.value.copy(walker.position);
