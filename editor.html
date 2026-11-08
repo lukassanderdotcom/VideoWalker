@@ -260,12 +260,24 @@
       }
 
       .simulated-user-marker {
+        position: relative;
+        border: 0;
+        background-color: #ffffff;
+      }
+
+      .simulated-user-marker::before {
+        position: absolute;
+        inset: 0;
+        box-sizing: border-box;
+        border: 5px solid #2563eb;
+        border-radius: 50%;
+        content: '';
         animation: simulated-user-marker-pulse 2.5s ease-in-out infinite;
       }
 
       @keyframes simulated-user-marker-pulse {
-        0%, 100% { border-width: 4px; }
-        50% { border-width: 6px; }
+        0%, 100% { transform: scale(0.8); }
+        50% { transform: scale(1.2); }
       }
 
       .hidden { display: none !important; }
@@ -454,7 +466,6 @@
         markerElement.style.width = '20px';
         markerElement.style.height = '20px';
         markerElement.style.boxSizing = 'border-box';
-        markerElement.style.border = '5px solid #2563eb';
         markerElement.style.borderRadius = '50%';
         markerElement.style.backgroundColor = '#ffffff';
         markerElement.className = 'simulated-user-marker';
