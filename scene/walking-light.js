@@ -233,13 +233,14 @@ export async function createWalkingLight(map, config, { resolve = path => path, 
   placeGround();
 
   // Marker dot under the walking light
-  const dotOutline = new THREE.Mesh(new THREE.RingGeometry(2.4, 2.75, 24),
-    new THREE.MeshBasicMaterial({ color: 0x000000, depthTest: false, depthWrite: false, transparent: true, toneMapped: false }));
+  const userMarkerRadius = 4.8;
+  const dotOutline = new THREE.Mesh(new THREE.RingGeometry(userMarkerRadius, userMarkerRadius + 1.4, 24),
+    new THREE.MeshBasicMaterial({ color: 0x2563eb, depthTest: false, depthWrite: false, transparent: true, toneMapped: false }));
   dotOutline.renderOrder = 9;
   dotOutline.frustumCulled = false;
   scene.add(dotOutline);
-  const dot = new THREE.Mesh(new THREE.CircleGeometry(2.4, 24),
-    new THREE.MeshBasicMaterial({ color: 0xfff6e0, depthTest: false, depthWrite: false, transparent: true, toneMapped: false }));
+  const dot = new THREE.Mesh(new THREE.CircleGeometry(userMarkerRadius, 24),
+    new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false, depthWrite: false, transparent: true, toneMapped: false }));
   dot.renderOrder = 10;
   dot.frustumCulled = false;
   scene.add(dot);
