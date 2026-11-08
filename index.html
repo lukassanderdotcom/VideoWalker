@@ -94,15 +94,6 @@
         touch-action: none;
       }
 
-      .user-position-marker {
-        animation: user-position-pulse 2.5s ease-in-out infinite;
-      }
-
-      @keyframes user-position-pulse {
-        0%, 100% { stroke-width: 6; }
-        50% { stroke-width: 9; }
-      }
-      
       /* Video page - fullscreen with black background */
       #videoPage {
         position: fixed;
@@ -538,6 +529,7 @@
       let videoCircles = []; // Store circles to update popups when language changes
       let userWithinLocations = new Set(); // Track which location indices user is currently within
       let map, userMarker;
+      let userMarkerPulseFrame = null;
       let walkingLight = null;        // The 3D scene, when the config has one
       const allVideoCircles = [];     // Every video location circle, to restyle them
       let watchId = null; // Store the watch ID
@@ -1078,6 +1070,14 @@
         }
       }
 
+      function animateUserMarker(timestamp) {
+        if (userMarker && map.hasLayer(userMarker)) {
+          const pulse = (Math.sin(timestamp / 1000 * Math.PI * 0.8) + 1) / 2;
+          userMarker.setStyle({ weight: 6 + pulse * 3 });
+        }
+        userMarkerPulseFrame = requestAnimationFrame(animateUserMarker);
+      }
+
       // Inside the 3D scene the walking light shows the visitor; elsewhere the usual marker does.
       // In the scene's soft edge the scene grows out of the flat map while the marker fades out
       function showUserPosition(latitude, longitude) {
@@ -1091,9 +1091,11 @@
           weight: 6,
           opacity: markerOpacity,
           fillColor: '#ffffff',
-          fillOpacity: markerOpacity,
-          className: 'user-position-marker'
+          fillOpacity: markerOpacity
         }).addTo(map) : null;
+        if (userMarkerPulseFrame === null) {
+          userMarkerPulseFrame = requestAnimationFrame(animateUserMarker);
+        }
       }
 
       /**                       **/
