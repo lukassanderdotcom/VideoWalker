@@ -1072,8 +1072,8 @@
 
       function animateUserMarker(timestamp) {
         if (userMarker && map.hasLayer(userMarker)) {
-          const pulse = (Math.sin(timestamp / 1000 * Math.PI * 0.8) + 1) / 2;
-          userMarker.setStyle({ weight: 5 + pulse * 2 });
+          const pulse = Math.sin(timestamp / 1000 * Math.PI * 0.8);
+          userMarker.setStyle({ weight: 6 + pulse });
         }
         userMarkerPulseFrame = requestAnimationFrame(animateUserMarker);
       }
