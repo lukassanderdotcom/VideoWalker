@@ -443,7 +443,14 @@
         }
         const { pinOpacity } = walkingLight.setWalker(event.lngLat.lng, event.lngLat.lat);
         if (!simulatedPin) {
-          simulatedPin = new maplibregl.Marker({ color: '#2a81cb' }); // like Leaflet's default pin in the app
+          const markerElement = document.createElement('div');
+          markerElement.style.width = '40px';
+          markerElement.style.height = '40px';
+          markerElement.style.boxSizing = 'border-box';
+          markerElement.style.border = '3px solid #2563eb';
+          markerElement.style.borderRadius = '50%';
+          markerElement.style.backgroundColor = '#ffffff';
+          simulatedPin = new maplibregl.Marker({ element: markerElement, anchor: 'center' });
           simulatedPin.getElement().style.pointerEvents = 'none';   // the mouse must keep reaching the map
         }
         simulatedPin.setLngLat(event.lngLat).addTo(map);
