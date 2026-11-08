@@ -437,24 +437,42 @@
       // In the Scene tab the mouse is the visitor's GPS position, as in the app: the light walks
       // through the streets, and the position pin fades out while the scene grows in the soft edge
       let simulatedPin = null;
+      function ensureSimulatedPin() {
+        if (simulatedPin) {
+          return;
+        }
+        const markerElement = document.createElement('div');
+        markerElement.style.width = '40px';
+        markerElement.style.height = '40px';
+        markerElement.style.boxSizing = 'border-box';
+        markerElement.style.border = '3px solid #2563eb';
+        markerElement.style.borderRadius = '50%';
+        markerElement.style.backgroundColor = '#ffffff';
+        simulatedPin = new maplibregl.Marker({ element: markerElement, anchor: 'center' });
+        simulatedPin.getElement().style.pointerEvents = 'none';
+      }
+
+      function showSimulatedPosition(longitude, latitude, opacity = 1) {
+        ensureSimulatedPin();
+        simulatedPin.setLngLat([longitude, latitude]).addTo(map);
+        simulatedPin.setOpacity(String(opacity));
+      }
+
+      function showDefaultSimulatedPosition() {
+        const start = config.defaultPosition;
+        if (!walkingLight || !start || !isNumber(start.latitude) || !isNumber(start.longitude)) {
+          return;
+        }
+        const { pinOpacity } = walkingLight.setWalker(start.longitude, start.latitude);
+        showSimulatedPosition(start.longitude, start.latitude, pinOpacity);
+      }
+
       map.on('mousemove', event => {
         if (activeTab !== 'scene' || !walkingLight) {
           return;
         }
         const { pinOpacity } = walkingLight.setWalker(event.lngLat.lng, event.lngLat.lat);
-        if (!simulatedPin) {
-          const markerElement = document.createElement('div');
-          markerElement.style.width = '40px';
-          markerElement.style.height = '40px';
-          markerElement.style.boxSizing = 'border-box';
-          markerElement.style.border = '3px solid #2563eb';
-          markerElement.style.borderRadius = '50%';
-          markerElement.style.backgroundColor = '#ffffff';
-          simulatedPin = new maplibregl.Marker({ element: markerElement, anchor: 'center' });
-          simulatedPin.getElement().style.pointerEvents = 'none';   // the mouse must keep reaching the map
-        }
-        simulatedPin.setLngLat(event.lngLat).addTo(map);
-        simulatedPin.setOpacity(String(pinOpacity)); // MapLibre markers manage their own opacity
+        showSimulatedPosition(event.lngLat.lng, event.lngLat.lat, pinOpacity);
       });
 
       // Outside the Scene tab the editor shows the whole scene, without visitor
@@ -795,7 +813,9 @@
         });
         refreshMarkers();
         refreshAreaVisibility();
-        if (tab !== 'scene') {
+        if (tab === 'scene') {
+          showDefaultSimulatedPosition();
+        } else {
           endSimulation();
         }
       }
@@ -1209,6 +1229,7 @@
             return;
           }
           walkingLight = created;
+          showDefaultSimulatedPosition();
         } catch (error) {
           console.error(error);
           showStatus('The scene could not be loaded: ' + error.message, true);
