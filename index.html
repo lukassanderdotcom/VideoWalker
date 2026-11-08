@@ -93,6 +93,15 @@
         height: 100vh;
         touch-action: none;
       }
+
+      .user-position-marker {
+        animation: user-position-pulse 2.5s ease-in-out infinite;
+      }
+
+      @keyframes user-position-pulse {
+        0%, 100% { stroke-width: 6; }
+        50% { stroke-width: 9; }
+      }
       
       /* Video page - fullscreen with black background */
       #videoPage {
@@ -1082,7 +1091,8 @@
           weight: 6,
           opacity: markerOpacity,
           fillColor: '#ffffff',
-          fillOpacity: markerOpacity
+          fillOpacity: markerOpacity,
+          className: 'user-position-marker'
         }).addTo(map) : null;
       }
 
